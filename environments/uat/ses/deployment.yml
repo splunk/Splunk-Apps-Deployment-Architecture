@@ -1,0 +1,11 @@
+target:
+  url: <SES URL>
+apps:
+  app1:
+    source: s3://apps/app1_1.0.0.tgz
+    config:
+      - ./app1/*.conf
+  app2:
+    source: s3://apps/app2_1.0.0.tgz
+    config:
+      - ./app2/*.conf
