@@ -26,10 +26,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade pyyaml
+          pip install boto3
       - name: Deploy to ${{ matrix.environment }}
         env:
           # In case of authentication needed to access target server
           SERVER_KEY: ${{ secrets.KEY_${{ matrix.environment | upper }} }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           python deploy.py --env ${{ matrix.environment }}
           echo "Deploying to ${{ matrix.environment }} environment"

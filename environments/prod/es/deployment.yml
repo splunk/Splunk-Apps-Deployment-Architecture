@@ -1,5 +1,5 @@
 target:
-  url: <ES URL>
+  url: https://splunk-es-prod.example.com
 apps:
   app1:
     source: s3://apps/app1_1.0.0.tgz

@@ -2,6 +2,12 @@ target:
   url: <ES URL>
 apps:
   app1:
-    source: s3://apps/app1_1.0.0.tgz
+    source: philips-ci-test
+    directory: apps/leaflet_maps_app_custom.spl
+    config:
+      - ./app1/*.conf
+  app2:
+    source: philips-ci-test
+    directory: apps/leaflet_maps_app_custom.spl
     config:
       - ./app1/*.conf
