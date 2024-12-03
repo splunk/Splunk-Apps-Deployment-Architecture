@@ -1,7 +1,13 @@
 target:
-  url: <ES URL>
+  url: https://staging.admin.splunk.com/scv-shw-124c06f337f0a4/adminconfig/v2/apps/victoria
 apps:
-  app1:
-    source: s3://apps/app1_1.0.0.tgz
+  leaflet_maps_app_custom:
+    source: philips-ci-test
+    directory: apps/leaflet_maps_app_custom.spl
+    config:
+      - ./app1/*.conf
+  test-geostats_v100:
+    source: philips-ci-test
+    directory: apps/test-geostats_v100.tgz
     config:
       - ./app1/*.conf
