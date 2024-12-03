@@ -116,7 +116,7 @@ def main():
         print("Usage: python script.py <path_to_yaml_file>")
         sys.exit(1)
 
-    yaml_file_path =  sys.argv[1] + "/deployment.yml"
+    yaml_file_path =  "environments/" + sys.argv[1] + "/deployment.yml"
 
     deployment_raport = {}
 
