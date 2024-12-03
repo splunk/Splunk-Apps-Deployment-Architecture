@@ -34,6 +34,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          SPLUNK_USERNAME: ${{ secrets.SPLUNK_USERNAME }}
+          SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
         run: |
           python deploy.py --env ${{ matrix.environment }}
           echo "Deploying to ${{ matrix.environment }} environment"
+      - name: Upload deployment report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-output
+          path: artifacts/
