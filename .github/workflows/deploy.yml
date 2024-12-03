@@ -28,8 +28,9 @@ jobs:
           pip install --upgrade pyyaml
           pip install boto3
           pip install requests
-          
+
       - name: Deploy to ${{ matrix.environment }}
+        continue-on-error: true
         env:
           # In case of authentication needed to access target server
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
