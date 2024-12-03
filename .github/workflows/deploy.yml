@@ -37,6 +37,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SPLUNK_USERNAME: ${{ secrets.SPLUNK_USERNAME }}
           SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
+          SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
         run: |
           python deploy.py ${{ matrix.environment }}
           echo "Deploying to ${{ matrix.environment }} environment"
