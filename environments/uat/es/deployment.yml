@@ -1,9 +1,9 @@
 target:
   url: https://staging.admin.splunk.com/scv-shw-124c06f337f0a4/adminconfig/v2/apps/victoria
 apps:
-  leaflet_maps_app_custom:
+  mulesoft-cloudhub-splunk_1.1.9:
     source: philips-ci-test
-    directory: apps/leaflet_maps_app_custom.spl
+    directory: apps/Mulesoft CloudHub Splunk 1.1.9.spl
   redfish-add-on-for-splunk_107:
     source: philips-ci-test
     directory: apps/redfish-add-on-for-splunk_107.tgz
