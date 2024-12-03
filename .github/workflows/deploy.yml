@@ -39,10 +39,10 @@ jobs:
           SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
           SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
         run: |
-          python deploy.py ${{ matrix.environment }}
           echo "Deploying to ${{ matrix.environment }} environment"
+          python deploy.py ${{ matrix.environment }}
       - name: Upload deployment report as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: python-output
+          name: deployment-report
           path: artifacts/

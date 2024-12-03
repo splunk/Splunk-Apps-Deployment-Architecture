@@ -6,8 +6,8 @@ apps:
     directory: apps/leaflet_maps_app_custom.spl
     config:
       - ./app1/*.conf
-  test-geostats_v100:
+  redfish-add-on-for-splunk_107:
     source: philips-ci-test
-    directory: apps/test-geostats_v100.tgz
+    directory: apps/redfish-add-on-for-splunk_107.tgz
     config:
       - ./app1/*.conf
