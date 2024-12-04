@@ -19,26 +19,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Package Splunk App
         run: |
-          # Base directory to search
-          BASE_DIR="environments/${{ matrix.environment }}"
-
-          # Check if the base directory exists, then list its subdirectories
-          if [ -d "$BASE_DIR" ]; then
-            SUBFOLDERS=$(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d | sort -u)
-          else
-            SUBFOLDERS=""
+          ROOT=$(pwd)
+          # Find the first-level directory with changes
+          CHANGED_FOLDER=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -oE '^apps/[^/]+' | sort -u | head -n 1)
+          if [ -z "$CHANGED_FOLDER" ]; then
+            echo "No changes detected in app folders. Exiting."
+            exit 1
           fi
-
-          # Print the result for debugging
-          echo "Subfolders for environment $BASE_DIR:"
-          echo "$SUBFOLDERS"
-
-          # Save the result as an environment variable for use in later steps
-          echo "SUBFOLDERS=$SUBFOLDERS" >> $GITHUB_ENV
-          echo "Changed folder: $SUBFOLDERS"
+          echo "Changed folder: $CHANGED_FOLDER"
           mkdir -p $ROOT/dist
           # Packaging all changed apps
-          for ch in $SUBFOLDERS
+          for ch in $CHANGED_FOLDER
           do
             version=$(cat $ch/app.manifest | jq -r '.info.id.name')
             tar -czf $ROOT/dist/$ch_$version.tar.gz ./$ch
