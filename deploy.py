@@ -40,6 +40,16 @@ def get_splunk_cloud_token():
     token = response.json()['data']['token']
     return token
 
+def validation_request_helper(url, headers, files):
+    try:
+        response = requests.post(url, headers=headers, files=files, timeout=120)
+        response_json = response.json()
+        request_id = response_json['request_id']
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+    return request_id
+
 def cloud_validate_app(app, config):
     """Validate the app for the Splunk Cloud."""
     token = get_splunk_cloud_token()
@@ -53,13 +63,16 @@ def cloud_validate_app(app, config):
     with open(app_file_path, 'rb') as file:
         files = {"app_package": file}
 
-        response = requests.post(url, headers=headers, files=files, timeout=120)
+        response = validation_request_helper(url, headers, files)
         response_json = response.json()
         request_id = response_json['request_id']
-
         headers = {"Authorization": f"Bearer {token}"}
         status_url = f"{base_url}/app/validate/status/{request_id}?included_tags=private_victoria"
-        response_status = requests.get(status_url, headers=headers)
+        try:
+            response_status = requests.get(status_url, headers=headers)
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            return None, None
 
         max_retries = 60  # Maximum number of retries
         retries = 0
@@ -106,9 +119,14 @@ def distribute_app(app, target_url, token):
         'ACS-Legal-Ack': 'Y'
     }
     file_path = f"{app}.tgz"
-    with open(file_path, 'rb') as file:
-        response = requests.post(url, headers=headers, data=file)
-    print(f"Distributed {app} to {target_url} with response: {response.status_code} {response.text}")
+    try:
+        with open(file_path, 'rb') as file:
+            response = requests.post(url, headers=headers, data=file)
+        print(f"Distributed {app} to {target_url} with response: {response.status_code} {response.text}")
+    except Exception as e:
+        print(f"Error distributing {app} to {target_url}: {e}")
+        return 500
+    
     return response.status_code
 
 def main():
@@ -122,8 +140,6 @@ def main():
 
     try:
         data = read_yaml(yaml_file_path)
-        print("YAML file contents:")
-        print(data)
     except FileNotFoundError:
         print(f"Error: The file '{yaml_file_path}' was not found.")
     except yaml.YAMLError as e:
@@ -149,7 +165,11 @@ def main():
         # Donwload app from S3
         download_file_from_s3(bucket, object_name, file_name)
         # Validate app for Splunk Cloud
-        raport,token = cloud_validate_app(app, SPLUNK_CLOUD_CONFIG)
+        raport, token = cloud_validate_app(app, SPLUNK_CLOUD_CONFIG)
+        if raport is None:
+            print(f"App {app} failed validation.")
+            deployment_raport[app] = {'validation': 'failed'}
+            continue
         result = raport['summary']
         deployment_raport[app] = raport
         # If app is valid, distribute it
