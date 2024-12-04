@@ -33,7 +33,7 @@ jobs:
           # Save the result as an environment variable for use in later steps
           echo "SUBFOLDERS=$SUBFOLDERS" >> $GITHUB_ENV
           echo "Changed folder: $SUBFOLDERS"
-          mkdir -p $ROOT/dist
+          sudo mkdir -p $ROOT/dist
           # Packaging all changed apps
           for ch in $SUBFOLDERS
           do
