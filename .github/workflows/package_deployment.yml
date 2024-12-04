@@ -4,7 +4,7 @@ on: workflow_call
 
 jobs:
   package-and-upload:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     strategy:
