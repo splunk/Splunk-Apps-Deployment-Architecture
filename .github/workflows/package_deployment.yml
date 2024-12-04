@@ -1,18 +1,15 @@
 name: Package Private Apps (Tar)
 
-on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
-    path:
-      - apps/*/**
+on: workflow_call
 
 jobs:
   package-and-upload:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: ["uat/ses", "uat/es", "prod/es", "prod/ses"]
 
     steps:
       - name: Checkout Code
@@ -21,7 +18,7 @@ jobs:
         run: |
           ROOT=$(pwd)
           # Find the first-level directory with changes
-          CHANGED_FOLDER=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -oE '^apps/[^/]+' | sort -u | head -n 1)
+          CHANGED_FOLDER=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -oE '^enviroments/${{ matrix.environment }}[^/]+' | sort -u | head -n 1)
           if [ -z "$CHANGED_FOLDER" ]; then
             echo "No changes detected in app folders. Exiting."
             exit 1

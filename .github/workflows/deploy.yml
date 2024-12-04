@@ -8,6 +8,10 @@ on:
       - environments/*/**
 
 jobs:
+  package-and-upload:
+    uses: ./.github/workflows/package_deployment.yml
+    secrets: inherit
+
   deploy:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
