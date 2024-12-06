@@ -35,9 +35,9 @@ jobs:
           # Packaging all changed apps
           for ch in $SUBFOLDERS
           do
-            sudo mkdir -p $ROOT/dist
-            sudo tar -czf "$ROOT/dist/$ch.tgz" $BASE_DIR/$ch
-            ls -alt
+            sudo mkdir -p $BASE_DIR/dist
+            sudo tar -czf "$BASE_DIR/dist/$ch.tgz" $BASE_DIR/$ch
+            ls -alt $BASE_DIR
           done
       - name: Upload to S3
         uses: shallwefootball/upload-s3-action@master
