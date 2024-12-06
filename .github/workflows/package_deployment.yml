@@ -35,15 +35,19 @@ jobs:
           # Packaging all changed apps
           for ch in $SUBFOLDERS
           do
-            sudo mkdir -p $BASE_DIR/dist
-            sudo tar -czf "$BASE_DIR/dist/$ch.tgz" $BASE_DIR/$ch
+            sudo mkdir -p dist/
+            sudo tar -czf dist/$ch.tgz $BASE_DIR/$ch
             ls -alt $BASE_DIR
+            ls -alt .
+            ls -alt dist/
           done
       - name: Upload to S3
         uses: shallwefootball/upload-s3-action@master
+        env:
+          BASE_DIR : "environments/${{ matrix.environment }}"
         with:
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
           aws_bucket: 'philips-ci-test'
-          source_dir: './dist'
+          source_dir: 'dist'
           destination_dir: 'apps'
