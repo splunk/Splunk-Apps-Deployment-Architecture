@@ -36,7 +36,7 @@ jobs:
           for ch in $SUBFOLDERS
           do
             sudo mkdir -p dist/
-            sudo tar -czf dist/$ch.tgz $BASE_DIR/$ch
+            sudo tar -czf dist/$ch.tgz -C "$BASE_DIR/$ch" .
             ls -alt $BASE_DIR
             ls -alt .
             ls -alt dist/
