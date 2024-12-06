@@ -2,13 +2,15 @@ import sys
 import time
 import json
 import os
+import tarfile
+import shutil
 
 import yaml
 import boto3
 import requests
 
 SPLUNK_CLOUD_CONFIG = {
-    "token": os.environ.get("SPLUNK_TOKEN"),
+    "token": os.getenv("SPLUNK_TOKEN"),
     "appinspect_base_url": "https://appinspect.splunk.com/v1"
 }
 
@@ -29,6 +31,31 @@ def download_file_from_s3(bucket_name, object_name, file_name):
         print(f"Downloaded {object_name} from {bucket_name} to {file_name}")
     except Exception as e:
         print(f"Error downloading {object_name} from {bucket_name}: {e}")
+
+def unpack_load_conf_and_repack(app):
+    """Unpack the app, load environment configuration files and repack the app."""
+    temp_dir = "temp_unpack"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # Unpack the tar.gz file
+    with tarfile.open(f"{app}.tgz", "r:gz") as tar:
+        tar.extractall(path=temp_dir)
+    # Create default directory for unpacked app
+    default_dir = f"{temp_dir}/{app}/default"
+    os.makedirs(default_dir, exist_ok=True)
+    # Load the environment configuration files
+    app_dir = f"environments/{sys.argv[1]}/{app}"
+    # Copy all .conf files in app_dir to temp_dir of unpacked app
+    for file in os.listdir(app_dir):
+        if file.endswith(".conf"):
+            shutil.copy(f"{app_dir}/{file}", default_dir)
+    # Repack the app and place it in the root directory
+    with tarfile.open(f"{app}.tgz", "w:gz") as tar:
+        for root, _, files in os.walk(f"{temp_dir}/{app}"):
+            for file in files:
+                full_path = os.path.join(root, file)
+                arcname = os.path.relpath(full_path, temp_dir)
+                tar.add(full_path, arcname=arcname)
 
 def get_splunk_cloud_token():
     """Authenticate to the Splunk Cloud."""
@@ -62,10 +89,7 @@ def cloud_validate_app(app, config):
     print(f"Validating app {app}...")
     with open(app_file_path, 'rb') as file:
         files = {"app_package": file}
-
-        response = validation_request_helper(url, headers, files)
-        response_json = response.json()
-        request_id = response_json['request_id']
+        request_id = validation_request_helper(url, headers, files)
         headers = {"Authorization": f"Bearer {token}"}
         status_url = f"{base_url}/app/validate/status/{request_id}?included_tags=private_victoria"
         try:
@@ -156,14 +180,15 @@ def main():
 
     # Download all apps from S3
     for app, bucket, directory in zip(apps, s3_buckets, app_direcotires):
-        print(f"App: {app}, Bucket: {bucket}, Directory: {directory}")
-
-    # Download all apps from S3
-    for app, bucket, directory in zip(apps, s3_buckets, app_direcotires):
         object_name = directory
         file_name = f"{app}.tgz"
         # Donwload app from S3
         download_file_from_s3(bucket, object_name, file_name)
+        # Upload_local_configurateion
+        if os.path.exists(f"environments/{sys.argv[1]}/{app}"):
+            unpack_load_conf_and_repack(app)
+        else:
+            print(f"No configuration found for app {app}. Skipping.")
         # Validate app for Splunk Cloud
         raport, token = cloud_validate_app(app, SPLUNK_CLOUD_CONFIG)
         if raport is None:

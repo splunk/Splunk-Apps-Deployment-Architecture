@@ -21,7 +21,7 @@ jobs:
 
           # Check if the base directory exists, then list its subdirectories
           if [ -d "$BASE_DIR" ]; then
-            SUBFOLDERS=$(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d | sort -u)
+            SUBFOLDERS=$(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -u)
           else
             SUBFOLDERS=""
           fi
@@ -31,13 +31,12 @@ jobs:
           echo "$SUBFOLDERS"
 
           # Save the result as an environment variable for use in later steps
-          echo "SUBFOLDERS=$SUBFOLDERS" >> $GITHUB_ENV
           echo "Changed folder: $SUBFOLDERS"
-          sudo mkdir -p $ROOT/dist
           # Packaging all changed apps
           for ch in $SUBFOLDERS
           do
-            tar -czf $ROOT/dist/$ch.tgz ./$ch
+            sudo mkdir -p $ROOT/dist
+            tar -czf "$ROOT/dist/$ch.tgz" $BASE_DIR/$ch
           done
       - name: Upload to S3
         uses: shallwefootball/upload-s3-action@master

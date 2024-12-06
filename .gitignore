@@ -1,5 +1,9 @@
 .DS_Store
-.env*
+*.env*
+deploy_test.py
+artifacts/
+temp_unpack/
+*.tgz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
