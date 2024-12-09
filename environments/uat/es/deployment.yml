@@ -1,14 +1,14 @@
 target:
   url: https://staging.admin.splunk.com/scv-shw-77b8de5e8af3f1/adminconfig/v2/apps/victoria
 apps:
-  mulesoft-cloudhub-splunk_1.1.9:
-    source: philips-ci-test
-    directory: apps/Mulesoft CloudHub Splunk 1.1.9.spl
-  redfish-add-on-for-splunk_107:
-    source: philips-ci-test
-    directory: apps/redfish-add-on-for-splunk_107.tgz
+  # mulesoft-cloudhub-splunk_1.1.9:
+  #   source: philips-ci-test
+  #   directory: apps/Mulesoft CloudHub Splunk 1.1.9.spl
+  # redfish-add-on-for-splunk_107:
+  #   source: philips-ci-test
+  #   directory: apps/redfish-add-on-for-splunk_107.tgz
   Splunk_TA_App1:
     source: philips-ci-test
-    directory: apps/Splunk_TA_App1.tgz
+    directory: apps/Splunk_TA_app1.tgz
     config:
       - ./app1/*.conf
