@@ -41,6 +41,11 @@ jobs:
         run: |
           echo "Deploying to ${{ matrix.environment }} environment"
           python deploy.py ${{ matrix.environment }}
+      - name: Check temp directory
+        run: |
+          ls -alt
+          ls -alt artifacts/
+          ls -alt temp_unpack/
       - name: Upload deployment report as artifact
         uses: actions/upload-artifact@v3
         with:
