@@ -36,10 +36,10 @@ jobs:
           for ch in $SUBFOLDERS
           do
             sudo mkdir -p dist/
-            sudo tar -czf dist/$ch.tgz -C "$BASE_DIR/$ch" .
-            ls -alt $BASE_DIR
-            ls -alt .
-            ls -alt dist/
+            pip install splunk-add-on-ucc-framework
+            pip install splunk-packaging-toolkit
+            ucc-gen build
+            ucc-gen package --path apps/$ch -o dist/
           done
       - name: Upload to S3
         continue-on-error: true
