@@ -67,6 +67,7 @@ Two pipelines:
     > Apps versions bumps are expected to be done at PR opening
 * `deploy` Triggered on merged PR to `main` when there are changes to `environments/*`
   * Will read the deployment configuration and run the `deploy.py` script to gather the app(s), eventually re-package with proper configuration and install in the target URL
+  * Will create `env_deployment_report.json` with information about cloud validation and deployment status
 
 `package_simple` is a simpler pipeline alternative to `package` with packaging performed by `tar`.
 

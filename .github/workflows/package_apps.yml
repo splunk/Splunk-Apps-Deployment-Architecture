@@ -17,7 +17,7 @@ jobs:
       - name: Package Splunk App
         run: |
           # Base directory to search
-          BASE_DIR="environments/${{ matrix.environment }}"
+          BASE_DIR="apps"
 
           # Check if the base directory exists, then list its subdirectories
           if [ -d "$BASE_DIR" ]; then
@@ -42,9 +42,10 @@ jobs:
             ls -alt dist/
           done
       - name: Upload to S3
+        continue-on-error: true
         uses: shallwefootball/upload-s3-action@master
         env:
-          BASE_DIR : "environments/${{ matrix.environment }}"
+          BASE_DIR : "apps"
         with:
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
