@@ -41,7 +41,7 @@ jobs:
           for ch in $SUBFOLDERS
           do
             # Copy app to docker
-            docker cp packages/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
+            docker cp apps/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
             # Package app leveraging Splunk REST API
             # - default/ content will be automatically merged with local/
             path=$(curl -k -u admin:password https://localhost:8089/services/apps/local/$ch/package?output_mode=json | jq -r '.entry | .[].content.path')
