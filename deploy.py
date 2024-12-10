@@ -39,7 +39,7 @@ def main():
         # Donwload app from S3
         download_file_from_s3(bucket, object_name, file_name)
 
-        ### 2. Upload_local_configurateion ###
+        ### 2. Upload_local_configuration ###
         path = check_all_letter_cases(sys.argv[1], app)
         if path:
             unpack_load_conf_and_repack(app, path)
