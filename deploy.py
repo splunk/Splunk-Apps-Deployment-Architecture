@@ -200,10 +200,10 @@ def main():
         download_file_from_s3(bucket, object_name, file_name)
 
         ### 2. Upload_local_configurateion ###
-        # if os.path.exists(f"environments/{sys.argv[1]}/{app}"):
-        #     unpack_load_conf_and_repack(app)
-        # else:
-        #     print(f"No configuration found for app {app}. Skipping.")
+        if os.path.exists(f"environments/{sys.argv[1]}/{app}"):
+            unpack_load_conf_and_repack(app)
+        else:
+            print(f"No configuration found for app {app}. Skipping.")
 
         ### 3. Validate app for Splunk Cloud ###
         raport, token = cloud_validate_app(app, SPLUNK_CLOUD_CONFIG)
