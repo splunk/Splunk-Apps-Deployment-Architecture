@@ -4,6 +4,6 @@ apps:
   app1:
     source: s3://apps/app1_1.0.0.tgz
     sha256: <sha from app>
+splunkbase-apps:
   cb-protection-app-for-splunk:
-    source: s3://splunk_base/cb-protection-app-for-splunk_20.tgz
-    sha256: 6c20f79fb606aac0be0e705ce5a5a84b526692be74442a543c06ecc1e36095af
+    version: 1.0.0
