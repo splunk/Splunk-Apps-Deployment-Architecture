@@ -33,9 +33,8 @@ def check_all_letter_cases(base_path, app_name):
             return path
         else:
             print(f"Not Found: {path}")
-            return None
     
-    return os.path.exists(path)
+    return None
 
 def download_file_from_s3(bucket_name, object_name, file_name):
     """Download a file from an S3 bucket."""
