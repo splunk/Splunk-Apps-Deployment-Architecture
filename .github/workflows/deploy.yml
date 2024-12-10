@@ -40,7 +40,7 @@ jobs:
           SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
         run: |
           echo "Deploying to ${{ matrix.environment }} environment"
-          python deploy.py ${{ matrix.environment }}
+          python -u deploy.py ${{ matrix.environment }}
       - name: Check temp directory
         continue-on-error: true
         run: |
