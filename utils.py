@@ -31,8 +31,6 @@ def check_all_letter_cases(base_path, app_name):
         if os.path.exists(path):
             print(f"Found: {path}")
             return path
-        else:
-            print(f"Not Found: {path}")
     
     return None
 
