@@ -7,7 +7,7 @@ apps:
   # redfish-add-on-for-splunk_107:
   #   source: philips-ci-test
   #   directory: apps/redfish-add-on-for-splunk_107.tgz
-  Splunk_TA_App1:
+  Splunk_TA_app1:
     source: philips-ci-test
     directory: apps/Splunk_TA_app1.tgz
     config:
