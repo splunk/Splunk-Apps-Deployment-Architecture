@@ -7,7 +7,7 @@ on:
 
 jobs:
   package-and-upload:
-    uses: ./.github/workflows/package_apps.yml
+    uses: ./.github/workflows/package.yml
     secrets: inherit
 
   download-and-deploy:

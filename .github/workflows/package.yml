@@ -1,17 +1,10 @@
 name: Package Private Apps
 
-on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
-    path:
-      - apps/*/**
+on: workflow_call
 
 jobs:
   package-and-upload:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     services:
       splunk:
@@ -38,19 +31,21 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Package Splunk App
         run: |
+          # Base directory to search
+          BASE_DIR="apps"
           ROOT=$(pwd)
-          # Find the first-level directory with changes
-          CHANGED_FOLDER=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -oE '^apps/[^/]+' | sort -u | head -n 1)
-          if [ -z "$CHANGED_FOLDER" ]; then
-            echo "No changes detected in app folders. Exiting."
-            exit 1
+
+          # Check if the base directory exists, then list its subdirectories
+          if [ -d "$BASE_DIR" ]; then
+            SUBFOLDERS=$(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -u)
+          else
+            SUBFOLDERS=""
           fi
-          echo "Changed folder: $CHANGED_FOLDER"
+          echo "Changed folder: $SUBFOLDERS"
           mkdir -p $ROOT/dist
           # Packaging all changed apps
-          for ch in $CHANGED_FOLDER
+          for ch in $SUBFOLDERS
           do
-            version=$(cat $ch/app.manifest | jq -r '.info.id.name')
             # Copy app to docker
             docker cp packages/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
             # Package app leveraging Splunk REST API
@@ -64,9 +59,17 @@ jobs:
             echo "Changing app extension spl -> tgz"
             file_name=$(ls *.spl | xargs -I"{}" basename {} .spl)
 
-            mv $file_name.spl $file_name_$version.tgz
+            mv $file_name.spl $file_name.tgz
             cd $ROOT
           done
       - name: Upload to S3
-        run: |
-          aws s3 sync ./dist/*.tgz s3://your-s3-bucket-name/apps/
+        continue-on-error: true
+        uses: shallwefootball/upload-s3-action@master
+        env:
+          BASE_DIR : "apps"
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: 'philips-ci-test'
+          source_dir: 'dist'
+          destination_dir: 'apps'
