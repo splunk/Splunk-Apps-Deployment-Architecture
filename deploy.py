@@ -8,6 +8,7 @@ import shutil
 import yaml
 import boto3
 import requests
+import itertools
 
 
 SPLUNK_CLOUD_CONFIG = {
@@ -20,7 +21,22 @@ def read_yaml(file_path):
     """Read and return the contents of a YAML file."""
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
-
+    
+def check_all_letter_cases(base_path, app_name):
+    # Generate all case combinations of "app"
+    case_variations = map("".join, itertools.product(*([char.lower(), char.upper()] for char in app_name)))
+    
+    # Check each variation in the path
+    for variation in case_variations:
+        path = os.path.join(base_path, variation)
+        if os.path.exists(path):
+            print(f"Found: {path}")
+            return path
+        else:
+            print(f"Not Found: {path}")
+            return None
+    
+    return os.path.exists(path)
 
 def download_file_from_s3(bucket_name, object_name, file_name):
     """Download a file from an S3 bucket."""
@@ -36,7 +52,7 @@ def download_file_from_s3(bucket_name, object_name, file_name):
         print(f"Error downloading {object_name} from {bucket_name}: {e}")
 
 
-def unpack_load_conf_and_repack(app):
+def unpack_load_conf_and_repack(app, path):
     """Unpack the app, load environment configuration files and repack the app."""
     temp_dir = "temp_unpack"
     os.makedirs(temp_dir, exist_ok=True)
@@ -48,7 +64,7 @@ def unpack_load_conf_and_repack(app):
     default_dir = f"{temp_dir}/{app}/default"
     os.makedirs(default_dir, exist_ok=True)
     # Load the environment configuration files
-    app_dir = f"environments/{sys.argv[1]}/{app}"
+    app_dir = path
     # Copy all .conf files in app_dir to temp_dir of unpacked app
     for file in os.listdir(app_dir):
         if file.endswith(".conf"):
@@ -200,8 +216,9 @@ def main():
         download_file_from_s3(bucket, object_name, file_name)
 
         ### 2. Upload_local_configurateion ###
-        if os.path.exists(f"environments/{sys.argv[1]}/{app}"):
-            unpack_load_conf_and_repack(app)
+        path = check_all_letter_cases(sys.argv[1], app)
+        if path:
+            unpack_load_conf_and_repack(app, path)
         else:
             print(f"No configuration found for app {app}. Skipping.")
 
