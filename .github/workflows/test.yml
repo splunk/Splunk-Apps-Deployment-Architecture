@@ -1,9 +1,9 @@
 name: Detect Modified Folders
 
-on:
-  push:
-    branches:
-      - fixes
+on: workflow_dispatch
+  # push:
+  #   branches:
+  #     - fixes
 
 jobs:
   detect-modified-folders:
