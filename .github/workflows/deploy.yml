@@ -74,15 +74,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        environment: 
-        - name: "uat/ses"
-          token_key: "SPLUNK_TOKEN_UAT_SES"
-        - name: "uat/es"
-          token_key: "SPLUNK_TOKEN_UAT_ES"
-        - name: "prod/es"
-          token_key: "SPLUNK_TOKEN_PROD_ES"
-        - name: "prod/ses"
-          token_key: "SPLUNK_TOKEN_PROD_SES"
+        environment:
+          - name: "uat/ses"
+            token_key: "SPLUNK_TOKEN_UAT_SES"
+          - name: "uat/es"
+            token_key: "SPLUNK_TOKEN_UAT_ES"
+          - name: "prod/es"
+            token_key: "SPLUNK_TOKEN_PROD_ES"
+          - name: "prod/ses"
+            token_key: "SPLUNK_TOKEN_PROD_SES"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -95,10 +95,6 @@ jobs:
           pip install --upgrade pyyaml
           pip install boto3
           pip install requests
-      - name: Set environment-specific secrets
-        id: set-secrets
-        run: |
-          echo "SPLUNK_TOKEN=$(echo '${{ matrix.environment.name }}' | tr '/' '_' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_ENV
       - name: Deploy to ${{ matrix.environment.name }}
         continue-on-error: true
         env:
@@ -109,8 +105,8 @@ jobs:
           SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
           SPLUNK_TOKEN: ${{ secrets[matrix.environment.token_key] }}
         run: |
-          echo "Deploying to ${{ matrix.environment }} environment"
-          python -u deploy.py ${{ matrix.environment }}
+          echo "Deploying to ${{ matrix.environment.nam }} environment"
+          python -u deploy.py ${{ matrix.environment.name }}
       - name: Check temp directory
         continue-on-error: true
         run: |
