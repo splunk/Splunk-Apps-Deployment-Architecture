@@ -72,25 +72,6 @@ jobs:
           ref: dev-feature
           fetch-depth: 0
         # TODO change branch ref
-      # - name: Check if app folder was modified
-      #   run: |
-      #     # Base directory to search
-      #     BASE_DIR="apps"
-
-      #     # Get the list of modified files in the specified directory
-      #     if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
-      #       git ls-files $BASE_DIR | sed -E 's|/[^/]+$||' | sort -u
-      #       CHANGED_FOLDERS=""
-      #     else
-      #       CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
-      #       | sed -E 's|/[^/]+$||' | sort -u)
-      #     fi
-      #     if [ -z "$CHANGED_FOLDERS" ]; then
-      #       echo "No folders were modified."
-      #     else
-      #       echo "Modified folders: $CHANGED_FOLDERS"
-      #     fi
-      #     $CHANGED_FOLDERS >> $GITHUB_ENV
       - name: Package Splunk App
         run: |
           ROOT=$(pwd)
