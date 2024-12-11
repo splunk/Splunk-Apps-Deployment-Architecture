@@ -12,8 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Git
-        run: git fetch --depth=2 origin +refs/heads/*:refs/remotes/origin/*
+        with:
+          ref: fixes
+          fetch-depth: 0
+      # - name: Set up Git
+      #   run: git fetch --depth=2 origin +refs/heads/*:refs/remotes/origin/*
       - name: Find modified folders
         id: find_modified_folders
         run: |
