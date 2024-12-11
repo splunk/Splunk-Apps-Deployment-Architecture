@@ -105,7 +105,7 @@ jobs:
           SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
           SPLUNK_TOKEN: ${{ secrets[matrix.environment.token_key] }}
         run: |
-          echo "Deploying to ${{ matrix.environment.nam }} environment"
+          echo "Deploying to ${{ matrix.environment.name }} environment"
           python -u deploy.py ${{ matrix.environment.name }}
       - name: Check temp directory
         continue-on-error: true

@@ -194,7 +194,6 @@ def distribute_app(app, target_url, token):
     print(f"Distributing {app} to {target_url}")
     url = target_url
     admin_token = SPLUNK_CLOUD_CONFIG["token"]
-    print(admin_token)
     headers = {
         "X-Splunk-Authorization": token,
         "Authorization": f"Bearer {admin_token}",
