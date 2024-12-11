@@ -1,3 +1,5 @@
+name: Deploy Splunk Apps
+
 on:
   push:
     branches:
