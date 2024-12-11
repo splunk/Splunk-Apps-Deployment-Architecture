@@ -28,12 +28,12 @@ jobs:
             MODIFIED_FOLDERS=()
           else
             MODIFIED_FOLDERS=($(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
-            | sed -E 's|^(([^/]+/){1,2}).*|\1|; s|/$||' | sort -u))
+            | sed -E 's|/[^/]+$||' | cut -d/ -f 1-3 | sort -u))
           fi
           echo "Modified folders:"
           echo "$MODIFIED_FOLDERS"
 
-          for pathvar in $MODIFIED_FOLDERS
+          for pathvar in "${MODIFIED_FOLDERS[@]}"
           do
              echo "$pathvar"
           done
