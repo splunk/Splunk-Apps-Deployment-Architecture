@@ -26,8 +26,7 @@ jobs:
       - name: Check if environment folder was modified
         id: check-modified
         run: |
-          BASE_DIR="/"
-          ENV_FOLDER="${BASE_DIR}/environments/${{ matrix.environment.name }}"
+          ENV_FOLDER="/environments/${{ matrix.environment.name }}"
           echo "ENV_FOLDER = $ENV_FOLDER"
           if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
             echo "First commit: marking folder as changed."
