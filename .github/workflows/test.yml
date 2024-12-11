@@ -25,10 +25,10 @@ jobs:
           # Get the list of modified files in the specified directory
           if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
             git ls-files $BASE_DIR | sed -E 's|/[^/]+$||' | sort -u
-            MODIFIED_FOLDERS=""
+            MODIFIED_FOLDERS=()
           else
-            MODIFIED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
-            | sed -E 's|/[^/]+$||' | sort -u)
+            MODIFIED_FOLDERS=($(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
+            | sed -E 's|/[^/]+$||' | sort -u))
           fi
           echo "Modified folders:"
           echo "$MODIFIED_FOLDERS"
