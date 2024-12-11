@@ -1,0 +1,34 @@
+name: Detect Modified Folders
+
+on:
+  push:
+    branches:
+      - fixes
+
+jobs:
+  detect-modified-folders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Git
+        run: git fetch --depth=2 origin +refs/heads/*:refs/remotes/origin/*
+      - name: Find modified folders
+        id: find_modified_folders
+        run: |
+          # Define the base directory
+          BASE_DIR="apps"
+          ROOT=$(pwd)
+
+          # Get the list of modified files in the specified directory
+          MODIFIED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
+            | sed -E 's|/[^/]+$||' | sort -u)
+
+          echo "Modified folders:"
+          echo "$MODIFIED_FOLDERS"
+
+          # Save the list to an output variable
+          echo "folders=$MODIFIED_FOLDERS" >> GITHUB_OUTPUT
+
+      - name: Debugging results
+        run: |
+          echo "The following folders have been modified: ${{ steps.find_modified_folders.outputs.folders }}"
