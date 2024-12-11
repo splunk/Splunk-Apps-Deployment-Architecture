@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fixes
+          ref: dev-feature
           fetch-depth: 0
         # TODO change branch ref
       - name: Package Splunk App
