@@ -1,6 +1,16 @@
 name: Package Private Apps
 
-on: workflow_call
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    path:
+      - apps/*/**
+  push:
+    branches:
+      - fixes
 
 jobs:
   package-and-upload:
@@ -21,8 +31,7 @@ jobs:
           - 8000:8000
           - 8089:8089
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Package Splunk App
         run: |
           # Base directory to search
