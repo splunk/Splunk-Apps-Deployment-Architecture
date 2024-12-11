@@ -33,8 +33,10 @@ jobs:
           echo "Modified folders:"
           echo "$MODIFIED_FOLDERS"
 
-          for pathvar in $MODIFIED_FOLDERS:
+          for pathvar in $MODIFIED_FOLDERS
+          do
              echo "$pathvar" | cut -d/ -f 1-3
+          done
 
           # Save the list to an output variable
           echo "folders=$MODIFIED_FOLDERS" >> GITHUB_OUTPUT
