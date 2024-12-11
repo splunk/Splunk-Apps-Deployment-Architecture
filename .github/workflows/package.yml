@@ -8,9 +8,9 @@ on:
       - main
     path:
       - apps/*/**
-  push:
-    branches:
-      - fixes
+  # push:
+  #   branches:
+  #     - fixes
 
 jobs:
   package-and-upload:
