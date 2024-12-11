@@ -6,6 +6,14 @@ import yaml
 
 from utils import *
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="local.env")
+
+
+SPLUNK_CLOUD_CONFIG = {
+    "token": os.getenv(f"SPLUNK_TOKEN_{sys.argv[1].replace('/', '_').upper()}"),
+    "appinspect_base_url": "https://appinspect.splunk.com/v1",
+}
 
 def main():
     if len(sys.argv) != 2:
@@ -40,9 +48,10 @@ def main():
         download_file_from_s3(bucket, object_name, file_name)
 
         ### 2. Upload_local_configuration ###
+        # Check if the configuration exists for the app
         path = check_all_letter_cases(sys.argv[1], app)
         if path:
-            unpack_load_conf_and_repack(app, path)
+            unpack_merge_conf_and_repack(app, path)
         else:
             print(f"No configuration found for app {app}. Skipping.")
 

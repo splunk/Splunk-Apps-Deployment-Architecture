@@ -9,11 +9,9 @@ import yaml
 import boto3
 import requests
 import itertools
+import configparser
 
-SPLUNK_CLOUD_CONFIG = {
-    "token": os.getenv("SPLUNK_TOKEN"),
-    "appinspect_base_url": "https://appinspect.splunk.com/v1",
-}
+from deploy import SPLUNK_CLOUD_CONFIG
 
 
 def read_yaml(file_path):
@@ -31,7 +29,6 @@ def check_all_letter_cases(base_path, app_name):
         if os.path.exists(path):
             print(f"Found: {path}")
             return path
-    
     return None
 
 def download_file_from_s3(bucket_name, object_name, file_name):
@@ -47,8 +44,41 @@ def download_file_from_s3(bucket_name, object_name, file_name):
     except Exception as e:
         print(f"Error downloading {object_name} from {bucket_name}: {e}")
 
+def merge_or_copy_conf(source_path, dest_path):
+    # Get the filename from the source path
+    filename = os.path.basename(source_path)
+    dest_file = os.path.join(dest_path, filename)
+    
+    # Check if the file exists in the destination directory
+    if not os.path.exists(dest_file):
+        # If the file doesn't exist, copy it
+        shutil.copy(source_path, dest_path)
+        print(f"Copied {filename} to {dest_path}")
+    else:
+        # If the file exists, merge the configurations
+        print(f"Merging {filename} with existing file in {dest_path}")
+        
+        # Read the source file
+        source_config = configparser.ConfigParser()
+        source_config.read(source_path)
+        
+        # Read the destination file
+        dest_config = configparser.ConfigParser()
+        dest_config.read(dest_file)
+        
+        # Merge source into destination
+        for section in source_config.sections():
+            if not dest_config.has_section(section):
+                dest_config.add_section(section)
+            for option, value in source_config.items(section):
+                dest_config.set(section, option, value)
+        
+        # Write the merged configuration back to the destination file
+        with open(dest_file, 'w') as file:
+            dest_config.write(file)
+        print(f"Merged configuration saved to {dest_file}")
 
-def unpack_load_conf_and_repack(app, path):
+def unpack_merge_conf_and_repack(app, path):
     """Unpack the app, load environment configuration files and repack the app."""
     temp_dir = "temp_unpack"
     os.makedirs(temp_dir, exist_ok=True)
@@ -64,7 +94,8 @@ def unpack_load_conf_and_repack(app, path):
     # Copy all .conf files in app_dir to temp_dir of unpacked app
     for file in os.listdir(app_dir):
         if file.endswith(".conf"):
-            shutil.copy(f"{app_dir}/{file}", default_dir)
+            source_path = os.path.join(app_dir, file)
+            merge_or_copy_conf(source_path, default_dir)
     # Repack the app and place it in the root directory
     with tarfile.open(f"{app}.tgz", "w:gz") as tar:
         for root, _, files in os.walk(f"{temp_dir}/{app}"):
@@ -160,6 +191,7 @@ def distribute_app(app, target_url, token):
     print(f"Distributing {app} to {target_url}")
     url = target_url
     admin_token = SPLUNK_CLOUD_CONFIG["token"]
+    print(admin_token)
     headers = {
         "X-Splunk-Authorization": token,
         "Authorization": f"Bearer {admin_token}",
