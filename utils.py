@@ -11,8 +11,11 @@ import requests
 import itertools
 import configparser
 
-from deploy import SPLUNK_CLOUD_CONFIG
 
+SPLUNK_CLOUD_CONFIG = {
+    "token": os.getenv("SPLUNK_TOKEN"),
+    "appinspect_base_url": "https://appinspect.splunk.com/v1",
+}
 
 def read_yaml(file_path):
     """Read and return the contents of a YAML file."""

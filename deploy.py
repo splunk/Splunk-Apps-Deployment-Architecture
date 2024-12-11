@@ -6,14 +6,6 @@ import yaml
 
 from utils import *
 
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="local.env")
-
-
-SPLUNK_CLOUD_CONFIG = {
-    "token": os.getenv(f"SPLUNK_TOKEN_{sys.argv[1].replace('/', '_').upper()}"),
-    "appinspect_base_url": "https://appinspect.splunk.com/v1",
-}
 
 def main():
     if len(sys.argv) != 2:
