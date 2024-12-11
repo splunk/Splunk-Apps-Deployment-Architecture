@@ -35,7 +35,3 @@ jobs:
 
           # Save the list to an output variable
           echo "folders=$MODIFIED_FOLDERS" >> GITHUB_OUTPUT
-
-      - name: Debugging results
-        run: |
-          echo "The following folders have been modified: ${{ steps.find_modified_folders.outputs.folders }}"
