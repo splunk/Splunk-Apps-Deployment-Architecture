@@ -18,6 +18,8 @@ jobs:
   check-changes-to-apps:
     # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      changed_folders: ${{ steps.check-changes.outputs.changed_folders }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,6 +27,7 @@ jobs:
           fetch-depth: 0
         # TODO change branch ref
       - name: Check if app folder was modified
+        id: check-changes
         run: |
           # Base directory to search
           BASE_DIR="apps"
@@ -39,14 +42,15 @@ jobs:
           fi
           if [ -z "$CHANGED_FOLDERS" ]; then
             echo "No folders were modified."
+            echo "changed_folders=" >> $GITHUB_OUTPUT
           else
             echo "Modified folders: $CHANGED_FOLDERS"
+            echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_OUTPUT
           fi
-          $CHANGED_FOLDERS >> $GITHUB_ENV
-
   package-and-upload:
     # if: github.event.pull_request.merged == true
-    if: env.CHANGED_FOLDERS != ''
+    needs: check-changes-to-apps
+    if: needs.check-changes-to-apps.outputs.changed_folders != ''
     runs-on: ubuntu-latest
     services:
       splunk:
@@ -88,7 +92,6 @@ jobs:
       #     fi
       #     $CHANGED_FOLDERS >> $GITHUB_ENV
       - name: Package Splunk App
-        if: env.CHANGED_FOLDERS != ''
         run: |
           ROOT=$(pwd)
           BASE_DIR="apps"
@@ -115,7 +118,6 @@ jobs:
             cd $ROOT
           done
       - name: Upload to S3
-        if: env.CHANGED_FOLDERS != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
