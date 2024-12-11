@@ -52,7 +52,11 @@ jobs:
             CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
             | sed -E 's|/[^/]+$||' | sort -u)
           fi
-          echo "Modified folders: $CHANGED_FOLDERS"
+          if [ -z "$CHANGED_FOLDERS" ]; then
+            echo "No folders were modified."
+          else
+            echo "Modified folders: $CHANGED_FOLDERS"
+          fi
 
           dirs=($(echo "$CHANGED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
           mkdir -p $ROOT/dist
