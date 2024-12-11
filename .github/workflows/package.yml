@@ -8,13 +8,10 @@ on:
       - main
     path:
       - apps/**
-  push:
-    branches:
-      - fixes
 
 jobs:
   package-and-upload:
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     services:
       splunk:
