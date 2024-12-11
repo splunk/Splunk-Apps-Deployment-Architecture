@@ -15,23 +15,9 @@ on:
       - apps/**
 
 jobs:
-  package-and-upload:
+  check-changes-to-apps:
     # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    services:
-      splunk:
-        image: splunk/splunk:9.1.3
-        env:
-          SPLUNK_START_ARGS: --answer-yes --no-prompt --accept-license
-          SPLUNK_PASSWORD: password
-        options: >-
-          --health-interval 30s
-          --health-timeout 5s
-          --health-retries 5
-          --name splunk
-        ports:
-          - 8000:8000
-          - 8089:8089
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,6 +43,50 @@ jobs:
             echo "Modified folders: $CHANGED_FOLDERS"
           fi
           $CHANGED_FOLDERS >> $GITHUB_ENV
+
+  package-and-upload:
+    # if: github.event.pull_request.merged == true
+    if: env.CHANGED_FOLDERS != ''
+    runs-on: ubuntu-latest
+    services:
+      splunk:
+        image: splunk/splunk:9.1.3
+        env:
+          SPLUNK_START_ARGS: --answer-yes --no-prompt --accept-license
+          SPLUNK_PASSWORD: password
+        options: >-
+          --health-interval 30s
+          --health-timeout 5s
+          --health-retries 5
+          --name splunk
+        ports:
+          - 8000:8000
+          - 8089:8089
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-feature
+          fetch-depth: 0
+        # TODO change branch ref
+      # - name: Check if app folder was modified
+      #   run: |
+      #     # Base directory to search
+      #     BASE_DIR="apps"
+
+      #     # Get the list of modified files in the specified directory
+      #     if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
+      #       git ls-files $BASE_DIR | sed -E 's|/[^/]+$||' | sort -u
+      #       CHANGED_FOLDERS=""
+      #     else
+      #       CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
+      #       | sed -E 's|/[^/]+$||' | sort -u)
+      #     fi
+      #     if [ -z "$CHANGED_FOLDERS" ]; then
+      #       echo "No folders were modified."
+      #     else
+      #       echo "Modified folders: $CHANGED_FOLDERS"
+      #     fi
+      #     $CHANGED_FOLDERS >> $GITHUB_ENV
       - name: Package Splunk App
         if: env.CHANGED_FOLDERS != ''
         run: |
