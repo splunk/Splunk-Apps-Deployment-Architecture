@@ -28,6 +28,7 @@ jobs:
         run: |
           ENV_FOLDER="/environments/${{ matrix.environment.name }}"
           echo "ENV_FOLDER = $ENV_FOLDER"
+          echo "Number of commits: $(git rev-list --count HEAD)"
           if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
             echo "First commit: marking folder as changed."
             echo "changed=true" >> $GITHUB_ENV
