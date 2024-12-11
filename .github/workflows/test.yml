@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - fixes
+    path:
+      - apps/*/**
 
 jobs:
   detect-modified-folders:
