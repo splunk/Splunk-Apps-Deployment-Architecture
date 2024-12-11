@@ -34,10 +34,7 @@ jobs:
           echo "$MODIFIED_FOLDERS"
 
           # Extract unique first two directories and store in array
-          unique_array=($(echo "$MODIFIED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $1"/"$2}' | sort -u))
-
-          # Print the unique array
-          printf "%s\n" "${unique_array[@]}"
+          unique_array=($(echo "$MODIFIED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
 
           for pathvar in "${unique_array[@]}"
           do
