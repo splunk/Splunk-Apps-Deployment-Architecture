@@ -7,10 +7,10 @@ on:
     branches:
       - main
     path:
-      - apps/*/**
-  # push:
-  #   branches:
-  #     - fixes
+      - apps/**
+  push:
+    branches:
+      - fixes
 
 jobs:
   package-and-upload:
@@ -32,25 +32,33 @@ jobs:
           - 8089:8089
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: fixes
+          fetch-depth: 0
+        # TODO change branch ref
       - name: Package Splunk App
         run: |
           # Base directory to search
           BASE_DIR="apps"
           ROOT=$(pwd)
 
-          # Check if the base directory exists, then list its subdirectories
-          if [ -d "$BASE_DIR" ]; then
-            SUBFOLDERS=$(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort -u)
+          # Get the list of modified files in the specified directory
+          if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
+            git ls-files $BASE_DIR | sed -E 's|/[^/]+$||' | sort -u
+            CHANGED_FOLDERS=""
           else
-            SUBFOLDERS=""
+            CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
+            | sed -E 's|/[^/]+$||' | sort -u)
           fi
-          echo "Changed folder: $SUBFOLDERS"
+          echo "Modified folders: $CHANGED_FOLDERS"
+
+          dirs=($(echo "$CHANGED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
           mkdir -p $ROOT/dist
           # Packaging all changed apps
-          for ch in $SUBFOLDERS
+          for ch in "${dirs[@]}"
           do
             # Copy app to docker
-            docker cp apps/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
+            docker cp $BASE_DIR/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
             # Package app leveraging Splunk REST API
             # - default/ content will be automatically merged with local/
             path=$(curl -k -u admin:password https://localhost:8089/services/apps/local/$ch/package?output_mode=json | jq -r '.entry | .[].content.path')
@@ -65,14 +73,11 @@ jobs:
             mv $file_name.spl $file_name.tgz
             cd $ROOT
           done
-      - name: Upload to S3
-        continue-on-error: true
-        uses: shallwefootball/upload-s3-action@master
-        env:
-          BASE_DIR : "apps"
+      - uses: aws-actions/configure-aws-cli@v2
         with:
-          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: 'philips-ci-test'
-          source_dir: 'dist'
-          destination_dir: 'apps'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload to S3
+        run: |
+          aws s3 sync ./dist/* s3://philips-ci-test/apps/
