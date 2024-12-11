@@ -23,16 +23,36 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Check if environment folder was modified
+        id: check-modified
+        run: |
+          BASE_DIR="/"
+          ENV_FOLDER="${BASE_DIR}/environments/${{ matrix.environment.name }}"
+          if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
+            echo "First commit: marking folder as changed."
+            echo "changed=true" >> $GITHUB_ENV
+          else
+            CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $ENV_FOLDER | wc -l)
+            if [ "$CHANGED_FOLDERS" -gt 0 ]; then
+              echo "Environment folder changed: $ENV_FOLDER"
+              echo "changed=true" >> $GITHUB_ENV
+            else
+              echo "No changes detected for $ENV_FOLDER"
+              echo "changed=false" >> $GITHUB_ENV
+            fi
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
       - name: Install dependencies
+        if: env.changed == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade pyyaml
           pip install boto3
           pip install requests
       - name: Deploy to ${{ matrix.environment.name }}
+        if: env.changed == 'true'
         continue-on-error: true
         env:
           # In case of authentication needed to access target server
@@ -45,11 +65,13 @@ jobs:
           echo "Deploying to ${{ matrix.environment.name }} environment"
           python -u deploy.py ${{ matrix.environment.name }}
       - name: Upload deployment report as artifact
+        if: env.changed == 'true'
         uses: actions/upload-artifact@v3
         with:
           name: deployment-report
           path: artifacts/
       - name: Upload .tgz artifacts
+        if: env.changed == 'true'
         uses: actions/upload-artifact@v3
         with:
           name: tgz-files
