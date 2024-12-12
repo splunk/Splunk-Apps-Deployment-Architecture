@@ -54,10 +54,10 @@ apps:
     # app before being installed, config key will tell
     config:
       - ./app1/*.conf
+splunkbase-apps:
   # Splunkbase apps
   cb-protection-app-for-splunk:
-    source: s3://splunk_base/cb-protection-app-for-splunk_20.tgz
-    sha256: 6c20f79fb606aac0be0e705ce5a5a84b526692be74442a543c06ecc1e36095af
+    version: 1.0.0
 ```
 
 ## CI/CD Automation
@@ -77,6 +77,11 @@ Two pipelines:
 * `deployment.yml` could have more parameters, the suggested ones are the bare minimum
 * Remember: the main concept is keeping development and configurations separated!
 * Be inspired by this solution! No need to apply revolutionary changes to the current architecture, maybe only a couple of them would be enough
+
+## Limitations
+* Splunkbase apps MUST be installed from Splunkbase on Splunk Cloud environments. ACS API can be leveraged to automatically install Splunkbase apps, but:
+  - Splunkbase apps **cannot be installed from S3** because of App ID conflicts (they are not private apps!)
+  - Splunkbase apps **cannot be installed with a custom configuration**; once installed, they will have to be configured via UI or by calling other APIs
 
 ### Learn More
 * [Splunk Cloud ACS API](https://docs.splunk.com/Documentation/SplunkCloud/9.2.2406/Config/ACSIntro)
