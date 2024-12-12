@@ -1,17 +1,56 @@
 name: Package Private Apps
 
 on:
-  pull_request:
-    types:
-      - closed
+  # pull_request:
+  #   types:
+  #     - closed
+  #   branches:
+  #     - main
+  #   path:
+  #     - apps/**
+  push:
     branches:
-      - main
+      - dev-feature
     path:
-      - apps/*/**
+      - apps/**
 
 jobs:
+  check-changes-to-apps:
+    # if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      changed_folders: ${{ steps.check-changes.outputs.changed_folders }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev-feature
+          fetch-depth: 0
+        # TODO change branch ref
+      - name: Check if app folder was modified
+        id: check-changes
+        run: |
+          # Base directory to search
+          BASE_DIR="apps"
+
+          # Get the list of modified files in the specified directory
+          if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
+            git ls-files $BASE_DIR | sed -E 's|/[^/]+$||' | sort -u
+            CHANGED_FOLDERS=""
+          else
+            CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
+            | sed -E 's|/[^/]+$||' | sort -u)
+          fi
+          if [ -z "$CHANGED_FOLDERS" ]; then
+            echo "No folders were modified."
+            echo "changed_folders=" >> $GITHUB_OUTPUT
+          else
+            echo "Modified folders: $CHANGED_FOLDERS"
+            echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_OUTPUT
+          fi
   package-and-upload:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
+    needs: check-changes-to-apps
+    if: needs.check-changes-to-apps.outputs.changed_folders != ''
     runs-on: ubuntu-latest
     services:
       splunk:
@@ -28,31 +67,23 @@ jobs:
           - 8000:8000
           - 8089:8089
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Setup AWS CLI
-        uses: aws-actions/configure-aws-cli@v2
+      - uses: actions/checkout@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          ref: dev-feature
+          fetch-depth: 0
+        # TODO change branch ref
       - name: Package Splunk App
         run: |
           ROOT=$(pwd)
-          # Find the first-level directory with changes
-          CHANGED_FOLDER=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -oE '^apps/[^/]+' | sort -u | head -n 1)
-          if [ -z "$CHANGED_FOLDER" ]; then
-            echo "No changes detected in app folders. Exiting."
-            exit 1
-          fi
-          echo "Changed folder: $CHANGED_FOLDER"
+          BASE_DIR="apps"
+          echo "Changed folders: $CHANGED_FOLDERS"
+          dirs=($(echo "$CHANGED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
           mkdir -p $ROOT/dist
           # Packaging all changed apps
-          for ch in $CHANGED_FOLDER
+          for ch in "${dirs[@]}"
           do
-            version=$(cat $ch/app.manifest | jq -r '.info.id.name')
             # Copy app to docker
-            docker cp packages/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
+            docker cp $BASE_DIR/$ch ${{ job.services.splunk.id }}:/opt/splunk/etc/apps/$ch
             # Package app leveraging Splunk REST API
             # - default/ content will be automatically merged with local/
             path=$(curl -k -u admin:password https://localhost:8089/services/apps/local/$ch/package?output_mode=json | jq -r '.entry | .[].content.path')
@@ -64,9 +95,13 @@ jobs:
             echo "Changing app extension spl -> tgz"
             file_name=$(ls *.spl | xargs -I"{}" basename {} .spl)
 
-            mv $file_name.spl $file_name_$version.tgz
+            mv $file_name.spl $file_name.tgz
             cd $ROOT
           done
       - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
         run: |
-          aws s3 sync ./dist/*.tgz s3://your-s3-bucket-name/apps/
+          aws s3 sync ./dist s3://philips-ci-test/apps/
