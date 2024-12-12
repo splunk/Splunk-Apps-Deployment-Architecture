@@ -69,8 +69,6 @@ Two pipelines:
   * Will read the deployment configuration and run the `deploy.py` script to gather the app(s), eventually re-package with proper configuration and install in the target URL
   * Will create `env_deployment_report.json` with information about cloud validation and deployment status
 
-`package_simple` is a simpler pipeline alternative to `package` with packaging performed by `tar`.
-
 ## Technical Notes
 * Pipelines triggers could differ from the suggested ones depending on the branches used
 * New pipelines could integrate AppInspect execution via dedicated action(s)
