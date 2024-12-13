@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: dev-feature
+          ref: main
           fetch-depth: 0
         # TODO change branch ref
       - name: Check if app folder was modified
