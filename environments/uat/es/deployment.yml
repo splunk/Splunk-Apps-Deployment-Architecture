@@ -12,3 +12,8 @@ apps:
     directory: apps/Splunk_TA_app1.tgz
     config:
       - ./app1/*.conf
+  buttercup_app_for_splunk:
+    source: philips-ci-test
+    directory: apps/buttercup_app_for_splunk.tgz
+    config:
+      - ./app2/*.conf
