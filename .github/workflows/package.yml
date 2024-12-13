@@ -8,6 +8,7 @@ on:
       - main
     path:
       - apps/**
+  workflow_dispatch:
 
 jobs:
   check-changes-to-apps:
@@ -35,6 +36,9 @@ jobs:
             CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
             | sed -E 's|/[^/]+$||' | sort -u)
           fi
+
+          CHANGED_FOLDERS=$(echo "$CHANGED_FOLDERS" | tr '\n' ',' | sed 's/,$//')
+          
           if [ -z "$CHANGED_FOLDERS" ]; then
             echo "No folders were modified."
             echo "changed_folders=" >> $GITHUB_OUTPUT
