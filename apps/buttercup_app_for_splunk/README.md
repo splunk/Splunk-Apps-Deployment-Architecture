@@ -49,3 +49,4 @@ Short snippet linking to `LICENSE.md`
 
 ## Other
 Test line
+Test line 2
