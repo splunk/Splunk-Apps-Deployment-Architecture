@@ -46,3 +46,6 @@ Give proper credits. This could be a link to any repo which inspired you to buil
 
 ## License
 Short snippet linking to `LICENSE.md`
+
+## Other
+Test line
