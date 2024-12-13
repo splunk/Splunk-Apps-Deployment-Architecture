@@ -17,7 +17,7 @@ on:
 
 jobs:
   check-changes-to-apps:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     outputs:
       changed_folders: ${{ steps.check-changes.outputs.changed_folders }}
