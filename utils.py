@@ -263,18 +263,14 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
             return f"failed with status: {request_status} - {response.text}"
     # Handle the case where the app is already installed
     elif response.status_code == 409:
-        if response.json()['version'] != version:
-            print(f"App {app} version {version} is already installed.")
-            app_name = response.json()['name']
-            url = f"{target_url}/{app_name}"
-            data = {
-                'version': version
-            }
-            response = requests.patch(url, headers=headers, data=data)
-            return "success"
-        else:
-            print(f"App {app} version {version} is already installed.")
-            return "success"
+        print(f"App {app} version {version} is already installed.")
+        app_name = response.json()['name']
+        url = f"{target_url}/{app_name}"
+        data = {
+            'version': version
+        }
+        response = requests.patch(url, headers=headers, data=data)
+        return "success"
     else:
         print("Request failed!")
         print(f"Status code: {response.status_code}")
