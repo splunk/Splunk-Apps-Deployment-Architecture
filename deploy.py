@@ -7,8 +7,8 @@ import yaml
 from utils import *
 
 # FOR LOCAL TESTING
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="local.env")
+# from dotenv import load_dotenv
+# load_dotenv(dotenv_path="local.env")
 
 def main():
     if len(sys.argv) != 2:
