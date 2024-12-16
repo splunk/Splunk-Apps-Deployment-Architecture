@@ -9,11 +9,6 @@ on:
     path:
       - environments/**
   # TODO remove the dispatch when PR to main
-  push:
-    branches:
-      - main
-    path:
-      - environments/**
   workflow_dispatch:
 
 jobs:

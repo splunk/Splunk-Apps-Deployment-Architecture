@@ -195,7 +195,6 @@ def distribute_app(app, target_url, token):
     print(f"Distributing {app} to {target_url}")
     url = target_url
     admin_token = os.getenv("SPLUNK_TOKEN")
-    print(f"ADMIN TOKEN: {admin_token}")
     headers = {
         "X-Splunk-Authorization": token,
         "Authorization": f"Bearer {admin_token}",
