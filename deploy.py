@@ -30,10 +30,13 @@ def main():
     ### 1. Retrieve all apps listed in deployment.yml from S3 ###
 
     # List all apps in yaml file and then their S3 bucket
-    apps = [app for app in data["apps"]]
+    print(data)
+    apps = data.get("apps", {}).keys()
     s3_buckets = [data["apps"][app]["source"] for app in apps]
     app_direcotires = [data["apps"][app]["directory"] for app in apps]
     target_url = data["target"]["url"]
+    # List of Splunkbase apps listed in deployment.yml
+    splunkbase_apps = data.get("splunkbase-apps", {})
 
     # Download all apps from S3
     for app, bucket, directory in zip(apps, s3_buckets, app_direcotires):
@@ -79,7 +82,23 @@ def main():
                 "distribution"
             ] = "failed due to app validation error"
 
-    ### 5. Save deployment raport to json file ###
+    ### 5. Handle Splunkbase apps ###
+    for splunkbase_app in splunkbase_apps:
+        app = splunkbase_apps[splunkbase_app]
+        app_name = splunkbase_app
+        version = app['version']
+        app_id = app["app_id"]
+        token = SPLUNK_CLOUD_CONFIG["token"]
+        licence = app["licence"]
+        install_status = install_splunkbase_app(app_name, app_id, version, target_url, token, licence)
+        if install_status == "success":
+            print(f"App {app_name} successfully installed.")
+            deployment_raport[app_name] = {"splunkbase_installation": "success"}
+        else:
+            print(f"App {app_name} failed installation.")
+            deployment_raport[app_name] = {"splunkbase_installation": install_status}
+
+    ### 6. Save deployment raport to json file ###
     raport_prefix = f"{sys.argv[1].split('/')[-2]}_{sys.argv[1].split('/')[-1]}"
     output_dir = "artifacts"
     os.makedirs(output_dir, exist_ok=True)
