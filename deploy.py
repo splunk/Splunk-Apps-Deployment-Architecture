@@ -93,9 +93,8 @@ def main():
         app_name = splunkbase_app
         version = app['version']
         app_id = app["app_id"]
-        stack = target_stack
         token = SPLUNK_CLOUD_CONFIG["token"]
-        install_status = install_splunkbase_app(app_name, app_id, version, stack, token)
+        install_status = install_splunkbase_app(app_name, app_id, version, target_url, token)
         if install_status == "success":
             print(f"App {app_name} successfully installed.")
             deployment_raport[app_name] = {"splunkbase_installation": "success"}
