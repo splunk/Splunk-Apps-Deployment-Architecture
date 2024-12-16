@@ -32,16 +32,11 @@ def main():
     # List all apps in yaml file and then their S3 bucket
     print(data)
     apps = data.get("apps", {}).keys()
-    print(apps)
     s3_buckets = [data["apps"][app]["source"] for app in apps]
-    print(s3_buckets)
     app_direcotires = [data["apps"][app]["directory"] for app in apps]
-    print(app_direcotires)
     target_url = data["target"]["url"]
     # List of Splunkbase apps listed in deployment.yml
     splunkbase_apps = data.get("splunkbase-apps", {})
-
-    print(splunkbase_apps)
 
     # Download all apps from S3
     for app, bucket, directory in zip(apps, s3_buckets, app_direcotires):
