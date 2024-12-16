@@ -18,7 +18,6 @@ SPLUNK_CLOUD_CONFIG = {
     "appinspect_base_url": "https://appinspect.splunk.com/v1",
 }
 SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
-CLOUD_SPLUNKBASE_INSTALL_ENDPOINT = "https://admin.splunk.com/{}/adminconfig/v2/apps/victoria?splunkbase=true"
 
 def read_yaml(file_path):
     """Read and return the contents of a YAML file."""
@@ -215,7 +214,7 @@ def distribute_app(app, target_url, token):
 
     return response.status_code
 
-def install_splunkbase_app(app, app_id, version, stack, token):
+def install_splunkbase_app(app, app_id, version, target_url, token):
     """Install a Splunkbase app."""
     print(f"\n\nInstalling Splunkbase app {app} version {version}")
     print("Authenticating to Splunkbase...")
@@ -239,7 +238,7 @@ def install_splunkbase_app(app, app_id, version, stack, token):
 
     # Install the app
     print(f"Installing app {app} version {version}...")
-    url = CLOUD_SPLUNKBASE_INSTALL_ENDPOINT.format(stack)
+    url = f"{target_url}?splunkbase=true"
 
     headers = {
         'X-Splunkbase-Authorization': splunkbase_token,

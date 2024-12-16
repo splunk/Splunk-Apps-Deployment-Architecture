@@ -1,6 +1,5 @@
 target:
-  url: https://staging.admin.splunk.com/scv-shw-77b8de5e8af3f1/adminconfig/v2/apps/victoria
-  stack: scv-shw-77b8de5e8af3f1
+  url: https://staging.admin.splunk.com/scv-shw-d3af438c5ac0c7/adminconfig/v2/apps/victoria
 apps:
   Splunk_TA_app1:
     source: philips-ci-test

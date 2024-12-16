@@ -38,7 +38,6 @@ def main():
     app_direcotires = [data["apps"][app]["directory"] for app in apps]
     print(app_direcotires)
     target_url = data["target"]["url"]
-    target_stack = data["target"]["stack"]
     # List of Splunkbase apps listed in deployment.yml
     splunkbase_apps = data.get("splunkbase-apps", {})
 
