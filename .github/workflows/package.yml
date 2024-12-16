@@ -8,11 +8,6 @@ on:
       - main
     path:
       - apps/**
-  push:
-    branches:
-      - main
-    path:
-      - apps/**
   workflow_dispatch:
 
 jobs:
