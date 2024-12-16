@@ -14,7 +14,6 @@ import xml.etree.ElementTree as ET
 
 
 SPLUNK_CLOUD_CONFIG = {
-    "token": os.getenv("SPLUNK_TOKEN"),
     "appinspect_base_url": "https://appinspect.splunk.com/v1",
 }
 SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
@@ -195,7 +194,8 @@ def distribute_app(app, target_url, token):
     """Distribute the app to the target URL."""
     print(f"Distributing {app} to {target_url}")
     url = target_url
-    admin_token = SPLUNK_CLOUD_CONFIG["token"]
+    admin_token = os.getenv("SPLUNK_TOKEN")
+    print(f"ADMIN TOKEN: {admin_token}")
     headers = {
         "X-Splunk-Authorization": token,
         "Authorization": f"Bearer {admin_token}",
@@ -214,7 +214,7 @@ def distribute_app(app, target_url, token):
 
     return response.status_code
 
-def install_splunkbase_app(app, app_id, version, target_url, token):
+def install_splunkbase_app(app, app_id, version, target_url, token, licence):
     """Install a Splunkbase app."""
     print(f"\n\nInstalling Splunkbase app {app} version {version}")
     print("Authenticating to Splunkbase...")
@@ -242,7 +242,7 @@ def install_splunkbase_app(app, app_id, version, target_url, token):
 
     headers = {
         'X-Splunkbase-Authorization': splunkbase_token,
-        'ACS-Licensing-Ack': 'http://opensource.org/licenses/ISC',
+        'ACS-Licensing-Ack': licence,
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/x-www-form-urlencoded',
     }

@@ -7,8 +7,8 @@ import yaml
 from utils import *
 
 # FOR LOCAL TESTING
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="local.env")
+# from dotenv import load_dotenv
+# load_dotenv(dotenv_path="local.env")
 
 def main():
     if len(sys.argv) != 2:
@@ -94,7 +94,8 @@ def main():
         version = app['version']
         app_id = app["app_id"]
         token = SPLUNK_CLOUD_CONFIG["token"]
-        install_status = install_splunkbase_app(app_name, app_id, version, target_url, token)
+        licence = app["licence"]
+        install_status = install_splunkbase_app(app_name, app_id, version, target_url, token, licence)
         if install_status == "success":
             print(f"App {app_name} successfully installed.")
             deployment_raport[app_name] = {"splunkbase_installation": "success"}

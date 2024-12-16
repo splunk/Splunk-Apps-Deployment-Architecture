@@ -16,6 +16,8 @@ splunkbase-apps:
   cb-protection-app-for-splunk:
     version: 2.0
     app_id: 1790
+    licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
   TA-cisco_ios:
     version: 2.7.5
     app_id: 1467
+    licence: https://creativecommons.org/licenses/by-nc-sa/4.0
