@@ -8,11 +8,11 @@ apps:
       - ./app1/*.conf
 splunkbase-apps:
   # Splunkbase apps
-  Tenable Add-On for Splunk:
+  TA-tenable:
     version: 7.0.0
     app_id: 4060
     licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
-  Splunk Add on for Microsoft Azure:
+  TA-MS-AAD:
     version: 4.2.0
     app_id: 3757
     licence: https://www.splunk.com/en_us/legal/splunk-general-terms.html
