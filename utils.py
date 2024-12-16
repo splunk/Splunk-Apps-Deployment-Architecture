@@ -13,10 +13,9 @@ import configparser
 import xml.etree.ElementTree as ET
 
 
-SPLUNK_CLOUD_CONFIG = {
-    "appinspect_base_url": "https://appinspect.splunk.com/v1",
-}
+SPLUNK_APPINSPECT_BASE_URL = "https://appinspect.splunk.com/v1"
 SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
+SPLUNK_AUTH_BASE_URL = "https://api.splunk.com/2.0/rest/login/splunk"
 
 def read_yaml(file_path):
     """Read and return the contents of a YAML file."""
@@ -34,6 +33,29 @@ def check_all_letter_cases(base_path, app_name):
             print(f"Found: {path}")
             return path
     return None
+
+def validate_data(data):
+    """Validate the data in the YAML file."""
+    if "apps" not in data:
+        print("Error: The 'apps' key is missing in deploy.yml fime.")
+        sys.exit(1)
+    if "target" not in data:
+        print("Error: The 'target' key is missing in deploy.yml file.")
+        sys.exit(1)
+    if "url" not in data["target"]:
+        print("Error: The 'url' key is missing in the 'target' section.")
+        sys.exit(1)
+    if "splunkbase-apps" not in data:
+        print("Error: The 'splunkbase-apps' key is missing.")
+        sys.exit(1)
+    
+    app_dict = data.get("apps", {})
+    splunkbase_dict = data.get("splunkbase-apps", {})
+
+    private_apps = True if app_dict else False
+    splunkbase_apps = True if splunkbase_dict else False
+
+    return private_apps, splunkbase_apps
 
 def download_file_from_s3(bucket_name, object_name, file_name):
     """Download a file from an S3 bucket."""
@@ -111,7 +133,7 @@ def unpack_merge_conf_and_repack(app, path):
 
 def get_appinspect_token():
     """Authenticate to the Splunk Cloud."""
-    url = "https://api.splunk.com/2.0/rest/login/splunk"
+    url = SPLUNK_AUTH_BASE_URL
     username = os.getenv("SPLUNK_USERNAME")
     password = os.getenv("SPLUNK_PASSWORD")
 
@@ -131,10 +153,10 @@ def validation_request_helper(url, headers, files):
     return request_id
 
 
-def cloud_validate_app(app, config):
+def cloud_validate_app(app):
     """Validate the app for the Splunk Cloud."""
     token = get_appinspect_token()
-    base_url = config["appinspect_base_url"]
+    base_url = SPLUNK_APPINSPECT_BASE_URL
     url = f"{base_url}/app/validate"
 
     headers = {"Authorization": f"Bearer {token}"}
@@ -215,7 +237,7 @@ def distribute_app(app, target_url, token):
 
 def install_splunkbase_app(app, app_id, version, target_url, token, licence):
     """Install a Splunkbase app."""
-    print(f"\n\nInstalling Splunkbase app {app} version {version}")
+    print(f"\nInstalling Splunkbase app {app} version {version}")
     print("Authenticating to Splunkbase...")
     url = SPLUNKBASE_BASE_URL
     data = {
@@ -236,7 +258,6 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
         print(response.text)
 
     # Install the app
-    print(f"Installing app {app} version {version}...")
     url = f"{target_url}?splunkbase=true"
 
     headers = {
@@ -254,10 +275,9 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
     response = requests.post(url, headers=headers, data=data)
     # Handle the case where the app is already installed
     if response.status_code == 409:
-        print(f"App {app} version {version} is already installed.")
+        print(f"App {app} is already installed.")
         print(f"Updating app {app} to version {version}...")
         app_name = app
-        print(app_name)
         url = f"{target_url}/{app_name}"
         data = {
             'version': version

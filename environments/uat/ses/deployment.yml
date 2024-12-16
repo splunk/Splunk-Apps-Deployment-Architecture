@@ -7,7 +7,6 @@ apps:
     config:
       - ./app1/*.conf
 splunkbase-apps:
-  # Splunkbase apps
   TA-tenable:
     version: 7.0.0
     app_id: 4060
