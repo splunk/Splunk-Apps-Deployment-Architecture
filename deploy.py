@@ -7,8 +7,8 @@ import yaml
 from utils import *
 
 # FOR LOCAL TESTING
-# from dotenv import load_dotenv
-# load_dotenv(dotenv_path="local.env")
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="local.env")
 
 def main():
     if len(sys.argv) != 2:
@@ -91,12 +91,12 @@ def main():
         token = os.getenv("SPLUNK_TOKEN")
         licence = app["licence"]
         install_status = install_splunkbase_app(app_name, app_id, version, target_url, token, licence)
-        if install_status == "success":
-            print(f"App {app_name} successfully installed.")
-            deployment_raport[app_name] = {"splunkbase_installation": "success"}
-        else:
-            print(f"App {app_name} failed installation.")
-            deployment_raport[app_name] = {"splunkbase_installation": install_status}
+        print(f"App {app_name} installation status: {install_status}")
+        deployment_raport[app_name] = {
+            "splunkbase_installation": install_status,
+            "version": version,
+            "app_id": app_id,
+            }
 
     ### 6. Save deployment raport to json file ###
     raport_prefix = f"{sys.argv[1].split('/')[-2]}_{sys.argv[1].split('/')[-1]}"
