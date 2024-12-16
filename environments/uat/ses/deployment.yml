@@ -1,11 +1,17 @@
 target:
-  url: <SES URL>
+  url: https://staging.admin.splunk.com/scv-shw-77b8de5e8af3f1/adminconfig/v2/apps/victoria
+  stack: scv-shw-77b8de5e8af3f1
 apps:
-  app1:
-    source: s3://apps/app1_1.0.0.tgz
+  Splunk_TA_app1:
+    source: philips-ci-test
+    directory: apps/Splunk_TA_app1.tgz
     config:
       - ./app1/*.conf
-  app2:
-    source: s3://apps/app2_1.0.0.tgz
-    config:
-      - ./app2/*.conf
+splunkbase-apps:
+  # Splunkbase apps
+  Tenable Add-On for Splunk:
+    version: 7.0.0
+    app_id: 4060
+  Splunk Add on for Microsoft Azure:
+    version: 4.2.0
+    app_id: 3757

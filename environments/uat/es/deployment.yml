@@ -1,12 +1,7 @@
 target:
   url: https://staging.admin.splunk.com/scv-shw-77b8de5e8af3f1/adminconfig/v2/apps/victoria
+  stack: scv-shw-77b8de5e8af3f1
 apps:
-  # mulesoft-cloudhub-splunk_1.1.9:
-  #   source: philips-ci-test
-  #   directory: apps/Mulesoft CloudHub Splunk 1.1.9.spl
-  # redfish-add-on-for-splunk_107:
-  #   source: philips-ci-test
-  #   directory: apps/redfish-add-on-for-splunk_107.tgz
   Splunk_TA_app1:
     source: philips-ci-test
     directory: apps/Splunk_TA_app1.tgz
@@ -17,3 +12,11 @@ apps:
     directory: apps/buttercup_app_for_splunk.tgz
     config:
       - ./app2/*.conf
+splunkbase-apps:
+  # Splunkbase apps
+  cb-protection-app-for-splunk:
+    version: 2.0
+    app_id: 1790
+  TA-cisco_ios:
+    version: 2.7.5
+    app_id: 1467

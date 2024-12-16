@@ -10,12 +10,15 @@ import boto3
 import requests
 import itertools
 import configparser
+import xml.etree.ElementTree as ET
 
 
 SPLUNK_CLOUD_CONFIG = {
     "token": os.getenv("SPLUNK_TOKEN"),
     "appinspect_base_url": "https://appinspect.splunk.com/v1",
 }
+SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
+CLOUD_SPLUNKBASE_INSTALL_ENDPOINT = "https://admin.splunk.com/{}/adminconfig/v2/apps/victoria?splunkbase=true"
 
 def read_yaml(file_path):
     """Read and return the contents of a YAML file."""
@@ -112,7 +115,7 @@ def get_appinspect_token():
     """Authenticate to the Splunk Cloud."""
     url = "https://api.splunk.com/2.0/rest/login/splunk"
     username = os.getenv("SPLUNK_USERNAME")
-    password = os.environ.get("SPLUNK_PASSWORD")
+    password = os.getenv("SPLUNK_PASSWORD")
 
     response = requests.get(url, auth=(username, password))
     token = response.json()["data"]["token"]
@@ -211,3 +214,57 @@ def distribute_app(app, target_url, token):
         return 500
 
     return response.status_code
+
+def install_splunkbase_app(app, app_id, version, stack, token):
+    """Install a Splunkbase app."""
+    print(f"\n\nInstalling Splunkbase app {app} version {version}")
+    print("Authenticating to Splunkbase...")
+    url = SPLUNKBASE_BASE_URL
+    data = {
+        'username': os.getenv("SPLUNK_USERNAME"),
+        'password': os.getenv("SPLUNK_PASSWORD")
+    }
+    response = requests.post(url, data=data)
+
+    if response.ok:
+        # Parse the XML response
+        xml_root = ET.fromstring(response.text)
+        # Extract the token from the <id> tag
+        namespace = {'atom': 'http://www.w3.org/2005/Atom'}  # Define the namespace
+        splunkbase_token = xml_root.find('atom:id', namespace).text  # Find the <id> tag with the namespace
+    else:
+        print("Splunkbase login failed!")
+        print(f"Status code: {response.status_code}")
+        print(response.text)
+
+    # Install the app
+    print(f"Installing app {app} version {version}...")
+    url = CLOUD_SPLUNKBASE_INSTALL_ENDPOINT.format(stack)
+
+    headers = {
+        'X-Splunkbase-Authorization': splunkbase_token,
+        'ACS-Licensing-Ack': 'http://opensource.org/licenses/ISC',
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    data = {
+        'splunkbaseID': app_id,
+        'version': version
+    }
+
+    response = requests.post(url, headers=headers, data=data)
+    if response.ok:
+        request_status = response.json()['status']
+        print(f"Request status: {request_status}")
+        if request_status in ("installed", "processing"):
+            print(f"App {app} version {version} installation successful.")
+            return "success"
+        else:
+            print(f"App {app} version {version} installation failed.")
+            return "failed"
+    else:
+        print("Request failed!")
+        print(f"Status code: {response.status_code}")
+        print(response.text)
+        return f"failed {response.status_code} - {response.text}"
