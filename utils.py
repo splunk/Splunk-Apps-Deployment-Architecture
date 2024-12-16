@@ -23,6 +23,7 @@ def read_yaml(file_path):
         return yaml.safe_load(file)
     
 def check_all_letter_cases(base_path, app_name):
+    """Check all letter cases for the app configuration."""
     # Generate all case combinations of "app"
     case_variations = map("".join, itertools.product(*([char.lower(), char.upper()] for char in app_name)))
     
@@ -35,7 +36,13 @@ def check_all_letter_cases(base_path, app_name):
     return None
 
 def validate_data(data):
-    """Validate the data in the YAML file."""
+    """
+    Validate the data in the YAML file.
+
+    Return boolean values for private_apps and splunkbase_apps presence in the environment configuration
+
+    validate_data(data) -> (bool, bool)
+    """
     if "apps" not in data:
         print("Error: The 'apps' key is missing in deploy.yml fime.")
         sys.exit(1)
@@ -132,7 +139,11 @@ def unpack_merge_conf_and_repack(app, path):
 
 
 def get_appinspect_token():
-    """Authenticate to the Splunk Cloud."""
+    """
+    Authenticate to the Splunk Cloud.
+    
+    get_appinspect_token() -> token : str
+    """
     url = SPLUNK_AUTH_BASE_URL
     username = os.getenv("SPLUNK_USERNAME")
     password = os.getenv("SPLUNK_PASSWORD")
@@ -143,6 +154,11 @@ def get_appinspect_token():
 
 
 def validation_request_helper(url, headers, files):
+    """
+    Helper function to make a validation request and return the request ID.
+    
+    validation_request_helper(url, headers, files) -> request_id : str
+    """
     try:
         response = requests.post(url, headers=headers, files=files, timeout=120)
         response_json = response.json()
@@ -154,7 +170,11 @@ def validation_request_helper(url, headers, files):
 
 
 def cloud_validate_app(app):
-    """Validate the app for the Splunk Cloud."""
+    """
+    Validate the app for the Splunk Cloud.
+    
+    cloud_validate_app(app) -> raport : dict, token : str
+    """
     token = get_appinspect_token()
     base_url = SPLUNK_APPINSPECT_BASE_URL
     url = f"{base_url}/app/validate"
@@ -213,7 +233,11 @@ def cloud_validate_app(app):
 
 
 def distribute_app(app, target_url, token):
-    """Distribute the app to the target URL."""
+    """
+    Distribute the app to the target URL.
+    
+    distribute_app(app, target_url, token) -> status_code : int
+    """
     print(f"Distributing {app} to {target_url}")
     url = target_url
     admin_token = os.getenv("SPLUNK_TOKEN")
@@ -236,7 +260,11 @@ def distribute_app(app, target_url, token):
     return response.status_code
 
 def install_splunkbase_app(app, app_id, version, target_url, token, licence):
-    """Install a Splunkbase app."""
+    """
+    Install a Splunkbase app.
+    
+    install_splunkbase_app(app, app_id, version, target_url, token, licence) -> status : str
+    """
     print(f"\nInstalling Splunkbase app {app} version {version}")
     print("Authenticating to Splunkbase...")
     url = SPLUNKBASE_BASE_URL
