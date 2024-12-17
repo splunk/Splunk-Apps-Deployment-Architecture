@@ -34,6 +34,7 @@ jobs:
           else
             CHANGED_FOLDERS=$(git diff --name-only HEAD^ HEAD -- $BASE_DIR \
             | sed -E 's|/[^/]+$||' | sort -u)
+            echo "Initial Changed folders: $CHANGED_FOLDERS"
           fi
 
           CHANGED_FOLDERS=$(echo "$CHANGED_FOLDERS" | tr '\n' ',' | sed 's/,$//')
