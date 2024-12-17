@@ -78,8 +78,17 @@ jobs:
           BASE_DIR="apps"
           CHANGED_FOLDERS="${{ needs.check-changes-to-apps.outputs.changed_folders }}"
           echo "Changed folders: $CHANGED_FOLDERS"
-          dirs=($(echo "$CHANGED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
+
+          # Split CHANGED_FOLDERS into an array using ',' as a delimiter
+          IFS=',' read -ra folders <<< "$CHANGED_FOLDERS"
+
+          # Extract unique app names from the paths
+          dirs=($(for folder in "${folders[@]}"; do
+              echo "$folder" | awk -F'/' '{if (NF >= 2) print $2}'
+          done | sort -u))
+
           mkdir -p $ROOT/dist
+          
           # Packaging all changed apps
           echo "Packaging apps: ${dirs[@]}"
           for ch in "${dirs[@]}"
