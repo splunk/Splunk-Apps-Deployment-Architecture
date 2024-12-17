@@ -6,7 +6,7 @@ on:
       - closed
     branches:
       - main
-    path:
+    paths:
       - environments/**
   # TODO remove the dispatch when PR to main
   workflow_dispatch:
