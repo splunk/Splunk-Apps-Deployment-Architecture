@@ -81,6 +81,7 @@ jobs:
           dirs=($(echo "$CHANGED_FOLDERS" | awk -F'/' '{if (NF >= 2) print $2}' | sort -u))
           mkdir -p $ROOT/dist
           # Packaging all changed apps
+          echo "Packaging apps: ${dirs[@]}"
           for ch in "${dirs[@]}"
           do
             # Copy app to docker
