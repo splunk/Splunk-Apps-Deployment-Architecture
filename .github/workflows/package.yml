@@ -6,13 +6,13 @@ on:
       - closed
     branches:
       - main
-    path:
+    paths:
       - apps/**
   workflow_dispatch:
 
 jobs:
   check-changes-to-apps:
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     outputs:
       changed_folders: ${{ steps.check-changes.outputs.changed_folders }}
@@ -21,7 +21,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-        # TODO change branch ref
       - name: Check if app folder was modified
         id: check-changes
         run: |
@@ -47,9 +46,10 @@ jobs:
             echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_OUTPUT
           fi
   package-and-upload:
-    # if: github.event.pull_request.merged == true
+    if: |
+      github.event.pull_request.merged == true &&
+      needs.check-changes-to-apps.outputs.changed_folders != ''
     needs: check-changes-to-apps
-    if: needs.check-changes-to-apps.outputs.changed_folders != ''
     runs-on: ubuntu-latest
     services:
       splunk:
