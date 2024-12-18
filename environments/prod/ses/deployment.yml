@@ -2,4 +2,5 @@ target:
   url: <Staging ES URL>
 apps:
   app1:
-    source: s3://apps/app1_1.0.0.tgz
+    s3-bucket: philips-ci-test
+    source: apps/Splunk_TA_app1.tgz

@@ -2,13 +2,13 @@ target:
   url: https://staging.admin.splunk.com/scv-shw-d3af438c5ac0c7/adminconfig/v2/apps/victoria
 apps:
   Splunk_TA_app1:
-    source: philips-ci-test
-    directory: apps/Splunk_TA_app1.tgz
+    s3-bucket: philips-ci-test
+    source: apps/Splunk_TA_app1.tgz
     config:
       - ./app1/*.conf
   buttercup_app_for_splunk:
-    source: philips-ci-test
-    directory: apps/buttercup_app_for_splunk.tgz
+    s3-bucket: philips-ci-test
+    source: apps/buttercup_app_for_splunk.tgz
     config:
       - ./app2/*.conf
 splunkbase-apps:

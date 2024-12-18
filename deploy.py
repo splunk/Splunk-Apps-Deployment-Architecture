@@ -31,8 +31,8 @@ def main():
     # List all apps in yaml file and then their S3 bucket
     if private_apps:
         apps = data.get("apps", {}).keys()
-        s3_buckets = [data["apps"][app]["source"] for app in apps]
-        app_directories = [data["apps"][app]["directory"] for app in apps]
+        s3_buckets = [data["apps"][app]["s3-bucket"] for app in apps]
+        app_directories = [data["apps"][app]["source"] for app in apps]
     target_url = data["target"]["url"]
     # Download all apps from S3
     if private_apps:
