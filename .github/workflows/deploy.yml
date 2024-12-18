@@ -55,6 +55,6 @@ jobs:
       - name: Debugging apps re-package
         uses: actions/upload-artifact@v3
         with:
-          name: tgz-files
+          name: ${{ matrix.environment.name }}-tgz-files
           path: ./*.tgz
 
