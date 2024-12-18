@@ -17,7 +17,7 @@ def main():
 
     yaml_file_path = "environments/" + sys.argv[1] + "/deployment.yml"
 
-    deployment_raport = {}
+    deployment_report = {}
 
     try:
         data = read_yaml(yaml_file_path)
@@ -32,12 +32,12 @@ def main():
     if private_apps:
         apps = data.get("apps", {}).keys()
         s3_buckets = [data["apps"][app]["source"] for app in apps]
-        app_direcotires = [data["apps"][app]["directory"] for app in apps]
+        app_directories = [data["apps"][app]["directory"] for app in apps]
     target_url = data["target"]["url"]
     # Download all apps from S3
     if private_apps:
         print("Found private apps in deployment.yml, starting deployment...")
-        for app, bucket, directory in zip(apps, s3_buckets, app_direcotires):
+        for app, bucket, directory in zip(apps, s3_buckets, app_directories):
             object_name = directory
             file_name = f"{app}.tgz"
             # Donwload app from S3
@@ -52,13 +52,13 @@ def main():
                 print(f"No configuration found for app {app}. Skipping.")
 
             ### 3. Validate app for Splunk Cloud ###
-            raport, token = cloud_validate_app(app)
-            if raport is None:
+            report, token = cloud_validate_app(app)
+            if report is None:
                 print(f"App {app} failed validation.")
-                deployment_raport[app] = {"validation": "failed"}
+                deployment_report[app] = {"validation": "failed"}
                 continue
-            result = raport["summary"]
-            deployment_raport[app] = raport
+            result = report["summary"]
+            deployment_report[app] = report
             ### 4. If app is valid, distribute it ###
             if (
                 result["error"] == 0
@@ -68,15 +68,15 @@ def main():
                 distribution_status = distribute_app(app, target_url, token)
                 if distribution_status == 200:
                     print(f"App {app} successfully distributed.")
-                    deployment_raport[app]["distribution"] = "success"
+                    deployment_report[app]["distribution"] = "success"
                 else:
                     print(f"App {app} failed distribution.")
-                    deployment_raport[app][
+                    deployment_report[app][
                         "distribution"
                     ] = f"failed with status code: {distribution_status}"
             else:
                 print(f"App {app} failed validation. Skipping distribution.")
-                deployment_raport[app][
+                deployment_report[app][
                     "distribution"
                 ] = "failed due to app validation error"
     else:
@@ -95,7 +95,7 @@ def main():
             licence = app["licence"]
             install_status = install_splunkbase_app(app_name, app_id, version, target_url, token, licence)
             print(f"App {app_name} installation status: {install_status}")
-            deployment_raport[app_name] = {
+            deployment_report[app_name] = {
                 "splunkbase_installation": install_status,
                 "version": version,
                 "app_id": app_id,
@@ -103,12 +103,12 @@ def main():
     else:
         print("No Splunkbase apps found in deployment.yml, skipping...")
 
-    ### 6. Save deployment raport to json file ###
-    raport_prefix = f"{sys.argv[1].split('/')[-2]}_{sys.argv[1].split('/')[-1]}"
+    ### 6. Save deployment report to json file ###
+    report_prefix = f"{sys.argv[1].split('/')[-2]}_{sys.argv[1].split('/')[-1]}"
     output_dir = "artifacts"
     os.makedirs(output_dir, exist_ok=True)
-    with open(f"{output_dir}/{raport_prefix}_deployment_raport.json", "w") as file:
-        json.dump(deployment_raport, file)
+    with open(f"{output_dir}/{report_prefix}_deployment_report.json", "w") as file:
+        json.dump(deployment_report, file)
 
 
 if __name__ == "__main__":
