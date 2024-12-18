@@ -18,6 +18,6 @@ splunkbase-apps:
     app_id: 1790
     licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
   TA for Cisco IOS:
-    version: 2.7.0
+    version: 2.7.5
     app_id: 1467
     licence: https://creativecommons.org/licenses/by-nc-sa/4.0
