@@ -48,8 +48,8 @@ target:
 apps:
   # Private apps
   app1:
-    s3-bucket: philips-ci-test
-    source: apps/Splunk_TA_app1.tgz
+    s3-bucket: bucket-1
+    source: apps/app1.tgz
     # If there are specific conf files to be added to this
     # app before being installed, config key will tell
     config:
