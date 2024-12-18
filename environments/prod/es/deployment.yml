@@ -2,8 +2,8 @@ target:
   url: https://splunk-es-prod.example.com
 apps:
   app1:
-    source: s3://apps/app1_1.0.0.tgz
-    sha256: <sha from app>
+    s3-bucket: philips-ci-test
+    source: apps/Splunk_TA_app1.tgz
 splunkbase-apps:
   cb-protection-app-for-splunk:
     version: 1.0.0
