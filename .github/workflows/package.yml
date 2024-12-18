@@ -38,7 +38,7 @@ jobs:
           fi
 
           CHANGED_FOLDERS=$(echo "$CHANGED_FOLDERS" | tr '\n' ',' | sed 's/,$//')
-          
+
           if [ -z "$CHANGED_FOLDERS" ]; then
             echo "No folders were modified."
             echo "changed_folders=" >> $GITHUB_OUTPUT
@@ -71,7 +71,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-        # TODO change branch ref
       - name: Package Splunk App
         run: |
           ROOT=$(pwd)
@@ -88,7 +87,7 @@ jobs:
           done | sort -u))
 
           mkdir -p $ROOT/dist
-          
+
           # Packaging all changed apps
           echo "Packaging apps: ${dirs[@]}"
           for ch in "${dirs[@]}"
