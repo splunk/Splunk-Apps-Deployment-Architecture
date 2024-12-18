@@ -8,12 +8,10 @@ on:
       - main
     paths:
       - environments/**
-  # TODO remove the dispatch when PR to main
-  workflow_dispatch:
 
 jobs:
   download-and-deploy:
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     strategy:
       matrix:

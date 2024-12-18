@@ -48,8 +48,8 @@ target:
 apps:
   # Private apps
   app1:
-    source: s3://apps/app1_1.0.0.tgz
-    sha256: <sha from app>
+    s3-bucket: philips-ci-test
+    source: apps/Splunk_TA_app1.tgz
     # If there are specific conf files to be added to this
     # app before being installed, config key will tell
     config:
@@ -58,6 +58,8 @@ splunkbase-apps:
   # Splunkbase apps
   cb-protection-app-for-splunk:
     version: 1.0.0
+    app_id: 1790
+    licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
 ```
 
 ## CI/CD Automation

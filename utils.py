@@ -21,12 +21,12 @@ def read_yaml(file_path):
     """Read and return the contents of a YAML file."""
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
-    
+
 def check_all_letter_cases(base_path, app_name):
     """Check all letter cases for the app configuration."""
     # Generate all case combinations of "app"
     case_variations = map("".join, itertools.product(*([char.lower(), char.upper()] for char in app_name)))
-    
+
     # Check each variation in the path
     for variation in case_variations:
         path = os.path.join("environments", base_path, variation)
@@ -55,7 +55,7 @@ def validate_data(data):
     if "splunkbase-apps" not in data:
         print("Error: The 'splunkbase-apps' key is missing.")
         sys.exit(1)
-    
+
     app_dict = data.get("apps", {})
     splunkbase_dict = data.get("splunkbase-apps", {})
 
@@ -81,7 +81,7 @@ def merge_or_copy_conf(source_path, dest_path):
     # Get the filename from the source path
     filename = os.path.basename(source_path)
     dest_file = os.path.join(dest_path, filename)
-    
+
     # Check if the file exists in the destination directory
     if not os.path.exists(dest_file):
         # If the file doesn't exist, copy it
@@ -90,22 +90,22 @@ def merge_or_copy_conf(source_path, dest_path):
     else:
         # If the file exists, merge the configurations
         print(f"Merging {filename} with existing file in {dest_path}")
-        
+
         # Read the source file
         source_config = configparser.ConfigParser()
         source_config.read(source_path)
-        
+
         # Read the destination file
         dest_config = configparser.ConfigParser()
         dest_config.read(dest_file)
-        
+
         # Merge source into destination
         for section in source_config.sections():
             if not dest_config.has_section(section):
                 dest_config.add_section(section)
             for option, value in source_config.items(section):
                 dest_config.set(section, option, value)
-        
+
         # Write the merged configuration back to the destination file
         with open(dest_file, 'w') as file:
             dest_config.write(file)
@@ -141,7 +141,7 @@ def unpack_merge_conf_and_repack(app, path):
 def get_appinspect_token():
     """
     Authenticate to the Splunk Cloud.
-    
+
     get_appinspect_token() -> token : str
     """
     url = SPLUNK_AUTH_BASE_URL
@@ -156,7 +156,7 @@ def get_appinspect_token():
 def validation_request_helper(url, headers, files):
     """
     Helper function to make a validation request and return the request ID.
-    
+
     validation_request_helper(url, headers, files) -> request_id : str
     """
     try:
@@ -172,8 +172,8 @@ def validation_request_helper(url, headers, files):
 def cloud_validate_app(app):
     """
     Validate the app for the Splunk Cloud.
-    
-    cloud_validate_app(app) -> raport : dict, token : str
+
+    cloud_validate_app(app) -> report : dict, token : str
     """
     token = get_appinspect_token()
     base_url = SPLUNK_APPINSPECT_BASE_URL
@@ -221,21 +221,21 @@ def cloud_validate_app(app):
             print("App validation successful.")
             print("Installing app...")
 
-        response_raport = requests.get(
+        response_report = requests.get(
             f"{base_url}/app/report/{request_id}?included_tags=private_victoria",
             headers=headers,
         )
-        raport = response_raport.json()
-        result = raport["summary"]
+        report = response_report.json()
+        result = report["summary"]
         print(result)
 
-        return raport, token
+        return report, token
 
 
 def distribute_app(app, target_url, token):
     """
     Distribute the app to the target URL.
-    
+
     distribute_app(app, target_url, token) -> status_code : int
     """
     print(f"Distributing {app} to {target_url}")
@@ -262,7 +262,7 @@ def distribute_app(app, target_url, token):
 def install_splunkbase_app(app, app_id, version, target_url, token, licence):
     """
     Install a Splunkbase app.
-    
+
     install_splunkbase_app(app, app_id, version, target_url, token, licence) -> status : str
     """
     print(f"\nInstalling Splunkbase app {app} version {version}")
@@ -326,6 +326,3 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
         print(f"Status code: {response.status_code}")
         print(response.text)
         return f"failed with status code: {response.status_code} - {response.text}"
-
-
-    
