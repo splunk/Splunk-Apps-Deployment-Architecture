@@ -7,11 +7,11 @@ apps:
     config:
       - ./app1/*.conf
 splunkbase-apps:
-  TA-tenable:
+  TA for Tebable:
     version: 7.0.0
     app_id: 4060
     licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
-  TA-MS-AAD:
+  TA for MS Azure:
     version: 4.1.0
     app_id: 3757
     licence: https://www.splunk.com/en_us/legal/splunk-general-terms.html
