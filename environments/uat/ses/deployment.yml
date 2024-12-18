@@ -12,6 +12,6 @@ splunkbase-apps:
     app_id: 4060
     licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
   TA-MS-AAD:
-    version: 4.2.0
+    version: 4.1.0
     app_id: 3757
     licence: https://www.splunk.com/en_us/legal/splunk-general-terms.html
