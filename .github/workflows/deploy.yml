@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - environments/**
+  workflow_dispatch:
 
 jobs:
   download-and-deploy:
