@@ -305,7 +305,12 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
     if response.status_code == 409:
         print(f"App {app} is already installed.")
         print(f"Updating app {app} to version {version}...")
-        app_name = app
+        # Get app name
+        url = f"https://splunkbase.splunk.com/api/v1/app/{app_id}"
+        response = requests.get(url)
+        app_name = response.json().get('appid')
+        print(f"App name: {app_name}")
+        # Update the app
         url = f"{target_url}/{app_name}"
         data = {
             'version': version
