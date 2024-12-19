@@ -5,12 +5,12 @@ apps:
     s3-bucket: philips-ci-test
     source: apps/Splunk_TA_app1.tgz
     config:
-      - ./app1/*.conf
+      - ./Splunk_TA_app1/*.conf
   buttercup_app_for_splunk:
     s3-bucket: philips-ci-test
     source: apps/buttercup_app_for_splunk.tgz
     config:
-      - ./app2/*.conf
+      - ./buttercup_app_for_splunk/*.conf
 splunkbase-apps:
   # Splunkbase apps
   CB Protection App for Splunk:
