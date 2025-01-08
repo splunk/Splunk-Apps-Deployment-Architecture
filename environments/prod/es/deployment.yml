@@ -2,7 +2,7 @@ target:
   url: https://splunk-es-prod.example.com
 apps:
   app1:
-    s3-bucket: philips-ci-test
+    s3-bucket: splunk-apps-deployment
     source: apps/Splunk_TA_app1.tgz
 splunkbase-apps:
   cb-protection-app-for-splunk:
