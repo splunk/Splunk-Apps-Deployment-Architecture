@@ -17,12 +17,12 @@ SPLUNK_APPINSPECT_BASE_URL = "https://appinspect.splunk.com/v1"
 SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
 SPLUNK_AUTH_BASE_URL = "https://api.splunk.com/2.0/rest/login/splunk"
 
-def read_yaml(file_path):
+def read_yaml(file_path: str) -> dict:
     """Read and return the contents of a YAML file."""
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
 
-def check_all_letter_cases(base_path, app_name):
+def check_all_letter_cases(base_path: str, app_name: str) -> str:
     """Check all letter cases for the app configuration."""
     # Generate all case combinations of "app"
     case_variations = map("".join, itertools.product(*([char.lower(), char.upper()] for char in app_name)))
@@ -35,7 +35,7 @@ def check_all_letter_cases(base_path, app_name):
             return path
     return None
 
-def validate_data(data):
+def validate_data(data: dict) -> tuple:
     """
     Validate the data in the YAML file.
 
@@ -64,7 +64,7 @@ def validate_data(data):
 
     return private_apps, splunkbase_apps
 
-def download_file_from_s3(bucket_name, object_name, file_name):
+def download_file_from_s3(bucket_name: str, object_name: str, file_name: str) -> None:
     """Download a file from an S3 bucket."""
     s3 = boto3.client(
         "s3",
@@ -77,7 +77,7 @@ def download_file_from_s3(bucket_name, object_name, file_name):
     except Exception as e:
         print(f"Error downloading {object_name} from {bucket_name}: {e}")
 
-def merge_or_copy_conf(source_path, dest_path):
+def merge_or_copy_conf(source_path: str, dest_path: str) -> None:
     # Get the filename from the source path
     filename = os.path.basename(source_path)
     dest_file = os.path.join(dest_path, filename)
@@ -111,7 +111,7 @@ def merge_or_copy_conf(source_path, dest_path):
             dest_config.write(file)
         print(f"Merged configuration saved to {dest_file}")
 
-def unpack_merge_conf_and_repack(app, path):
+def unpack_merge_conf_and_repack(app: str, path: str) -> None:
     """Unpack the app, load environment configuration files and repack the app."""
     temp_dir = "temp_unpack"
     os.makedirs(temp_dir, exist_ok=True)
@@ -138,7 +138,7 @@ def unpack_merge_conf_and_repack(app, path):
                 tar.add(full_path, arcname=arcname)
 
 
-def get_appinspect_token():
+def get_appinspect_token() -> str:
     """
     Authenticate to the Splunk Cloud.
 
@@ -153,7 +153,7 @@ def get_appinspect_token():
     return token
 
 
-def validation_request_helper(url, headers, files):
+def validation_request_helper(url: str, headers: dict , files: dict) -> str:
     """
     Helper function to make a validation request and return the request ID.
 
@@ -169,7 +169,7 @@ def validation_request_helper(url, headers, files):
     return request_id
 
 
-def cloud_validate_app(app):
+def cloud_validate_app(app: str) -> tuple:
     """
     Validate the app for the Splunk Cloud.
 
@@ -232,7 +232,7 @@ def cloud_validate_app(app):
         return report, token
 
 
-def distribute_app(app, target_url, token):
+def distribute_app(app: str, target_url: str, token: str) -> int:
     """
     Distribute the app to the target URL.
 
@@ -259,14 +259,12 @@ def distribute_app(app, target_url, token):
 
     return response.status_code
 
-def install_splunkbase_app(app, app_id, version, target_url, token, licence):
+def authenticate_splunkbase() -> str:
     """
-    Install a Splunkbase app.
+    Authenticate to Splunkbase.
 
-    install_splunkbase_app(app, app_id, version, target_url, token, licence) -> status : str
+    authenticate_splunkbase() -> token : str
     """
-    print(f"\nInstalling Splunkbase app {app} version {version}")
-    print("Authenticating to Splunkbase...")
     url = SPLUNKBASE_BASE_URL
     data = {
         'username': os.getenv("SPLUNK_USERNAME"),
@@ -280,11 +278,21 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
         # Extract the token from the <id> tag
         namespace = {'atom': 'http://www.w3.org/2005/Atom'}  # Define the namespace
         splunkbase_token = xml_root.find('atom:id', namespace).text  # Find the <id> tag with the namespace
+        return splunkbase_token
     else:
         print("Splunkbase login failed!")
         print(f"Status code: {response.status_code}")
         print(response.text)
+        return None
 
+def install_splunkbase_app(app: str, app_id: str, version: str, target_url: str, token: str, licence: str) -> str:
+    """
+    Install a Splunkbase app.
+
+    install_splunkbase_app(app, app_id, version, target_url, token, licence) -> status : str
+    """
+    # Authenticate to Splunkbase
+    splunkbase_token = authenticate_splunkbase()
     # Install the app
     url = f"{target_url}?splunkbase=true"
 
@@ -331,3 +339,41 @@ def install_splunkbase_app(app, app_id, version, target_url, token, licence):
         print(f"Status code: {response.status_code}")
         print(response.text)
         return f"failed with status code: {response.status_code} - {response.text}"
+    
+def get_app_id(app_name: str) -> str:
+    """
+    Get the Splunkbase app ID.
+
+    get_app_id(app_name) -> app_id : str
+    """
+    url = f"https://splunkbase.splunk.com/api/v1/app"
+    params = {
+        "query": app_name,
+        "limit": 1
+    }
+    response = requests.get(url, params=params)
+    if len(response.json().get('results')) > 0:
+        app_id = response.json().get('results')[0].get('appid')
+        return app_id
+    else:
+        print(f"App {app_name} not found on Splunkbase.")
+        return None
+    
+def get_license_url(app_name: str) -> str:
+    """
+    Get the licence URL for a Splunkbase app.
+
+    get_licence_url(app_name) -> licence_url : str
+    """
+    url = f"https://splunkbase.splunk.com/api/v1/app"
+    params = {
+        "query": app_name,
+        "limit": 1
+    }
+    response = requests.get(url, params=params)
+    if len(response.json().get('results')) > 0:
+        license_url = response.json().get('results')[0].get('license_url')
+        return license_url
+    else:
+        print(f"App {app_name} not found on Splunkbase.")
+        return None
