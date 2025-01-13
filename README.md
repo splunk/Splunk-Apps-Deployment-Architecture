@@ -58,8 +58,6 @@ splunkbase-apps:
   # Splunkbase apps
   cb-protection-app-for-splunk:
     version: 1.0.0
-    app_id: 1790
-    licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
 ```
 
 ## CI/CD Automation
