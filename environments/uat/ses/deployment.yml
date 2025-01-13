@@ -9,9 +9,5 @@ apps:
 splunkbase-apps:
   TA for Tebable:
     version: 7.0.0
-    app_id: 4060
-    licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
   TA for MS Azure:
     version: 4.2.0
-    app_id: 3757
-    licence: https://www.splunk.com/en_us/legal/splunk-general-terms.html
