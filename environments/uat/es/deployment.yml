@@ -1,5 +1,5 @@
 target:
-  url: https://staging.admin.splunk.com/scv-shw-d3af438c5ac0c7/adminconfig/v2/apps/victoria
+  url: https://staging.admin.splunk.com/scv-shw-217bd09bcbf264/adminconfig/v2/apps/victoria
 apps:
   Splunk_TA_app1:
     s3-bucket: splunk-apps-deployment
@@ -13,11 +13,7 @@ apps:
       - ./buttercup_app_for_splunk/*.conf
 splunkbase-apps:
   # Splunkbase apps
-  CB Protection App for Splunk:
-    version: 2.0
-    app_id: 1790
-    licence: https://cdn.splunkbase.splunk.com/static/misc/eula.html
-  TA for Cisco IOS:
+  Splunk Add-on for Amazon Web Services:
+    version: 7.9.0
+  Cisco Networks Add-on for Splunk Enterprise:
     version: 2.7.5
-    app_id: 1467
-    licence: https://creativecommons.org/licenses/by-nc-sa/4.0

@@ -353,7 +353,7 @@ def get_app_id(app_name: str) -> str:
     }
     response = requests.get(url, params=params)
     if len(response.json().get('results')) > 0:
-        app_id = response.json().get('results')[0].get('appid')
+        app_id = response.json().get('results')[0].get('uid')
         return app_id
     else:
         print(f"App {app_name} not found on Splunkbase.")

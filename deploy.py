@@ -90,7 +90,6 @@ def main():
             app = splunkbase_apps_dict[splunkbase_app]
             app_name = splunkbase_app
             version = app['version']
-            app_id = app["app_id"]
             app_id = get_app_id(app_name)
             token = os.getenv("SPLUNK_TOKEN")
             license = get_license_url(app_name)
