@@ -7,8 +7,8 @@ import yaml
 from utils import *
 
 # FOR LOCAL TESTING
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="local.env")
+# from dotenv import load_dotenv
+# load_dotenv(dotenv_path="local.env")
 
 def main():
     if len(sys.argv) != 2:
@@ -45,7 +45,8 @@ def main():
 
             ### 2. Upload_local_configuration ###
             # Check if the configuration exists for the app
-            path = check_all_letter_cases(sys.argv[1], app)
+            path = os.path.join("environments", sys.argv[1], app)
+            print(path)
             if path:
                 unpack_merge_conf_and_meta_repack(app, path)
             else:
