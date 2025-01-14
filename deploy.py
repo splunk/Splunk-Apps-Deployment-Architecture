@@ -47,7 +47,7 @@ def main():
             # Check if the configuration exists for the app
             path = check_all_letter_cases(sys.argv[1], app)
             if path:
-                unpack_merge_conf_and_repack(app, path)
+                unpack_merge_conf_and_meta_repack(app, path)
             else:
                 print(f"No configuration found for app {app}. Skipping.")
 
@@ -67,7 +67,7 @@ def main():
             ):
                 distribution_status = distribute_app(app, target_url, token)
                 if distribution_status == 200:
-                    print(f"App {app} successfully distributed.")
+                    print(f"App {app} successfully distributed.\n")
                     deployment_report[app]["distribution"] = "success"
                 else:
                     print(f"App {app} failed distribution.")

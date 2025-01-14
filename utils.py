@@ -12,6 +12,8 @@ import itertools
 import configparser
 import xml.etree.ElementTree as ET
 
+from io import StringIO
+
 
 SPLUNK_APPINSPECT_BASE_URL = "https://appinspect.splunk.com/v1"
 SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
@@ -77,6 +79,35 @@ def download_file_from_s3(bucket_name: str, object_name: str, file_name: str) ->
     except Exception as e:
         print(f"Error downloading {object_name} from {bucket_name}: {e}")
 
+def preprocess_empty_headers(file_path: str) -> list:
+    """
+    Preprocess the file to handle empty section headers by replacing `[]` with a valid section name.
+    """
+    valid_lines = []
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Replace empty section headers with a placeholder
+            if line.strip() == "[]":
+                valid_lines.append("[DEFAULT]\n")  # Or any placeholder section name
+            else:
+                valid_lines.append(line)
+    return valid_lines
+
+def replace_default_with_empty_header(file_path: str) -> None:
+    """
+    Replace '[DEFAULT]' header with '[]' in the specified file.
+    """
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    with open(file_path, 'w') as file:
+        for line in lines:
+            # Replace '[DEFAULT]' with '[]'
+            if line.strip() == "[DEFAULT]":
+                file.write("[]\n")
+            else:
+                file.write(line)
+
 def merge_or_copy_conf(source_path: str, dest_path: str) -> None:
     # Get the filename from the source path
     filename = os.path.basename(source_path)
@@ -111,7 +142,61 @@ def merge_or_copy_conf(source_path: str, dest_path: str) -> None:
             dest_config.write(file)
         print(f"Merged configuration saved to {dest_file}")
 
-def unpack_merge_conf_and_repack(app: str, path: str) -> None:
+def merge_or_copy_meta(local_meta_file: str, default_dir: str) -> None:
+    """Merge local.meta with default.meta"""
+    filename = os.path.basename(local_meta_file)
+    dest_file = os.path.join(default_dir, "default.meta")
+
+    # Check if the file exists in the destination directory
+    if not os.path.exists(dest_file):
+        # If the file doesn't exist, copy it
+        shutil.copy(local_meta_file, dest_file)
+        print(f"Copied {filename} to {dest_file}")
+    else:
+        # If the file exists, merge the configurations
+        print(f"Merging {filename} with existing file in {dest_file}")
+
+        # Preprocess the default file
+        default_preprocessed_lines = preprocess_empty_headers(dest_file)
+        default_preprocessed_content = StringIO(''.join(default_preprocessed_lines))
+
+        # Read the default.meta file
+        default_meta = configparser.ConfigParser()
+        default_meta.read_file(default_preprocessed_content)
+
+        # Preprocess the local file
+        local_preprocessed_lines = preprocess_empty_headers(local_meta_file)
+        local_preprocessed_content = StringIO(''.join(local_preprocessed_lines))
+
+        # Read the local.meta file
+        local_meta = configparser.ConfigParser()
+        local_meta.read_file(local_preprocessed_content)
+
+        # Merge local.meta into default.meta
+        for section in local_meta.sections():
+            if not default_meta.has_section(section):
+                default_meta.add_section(section)
+            for option, value in local_meta.items(section):
+                if default_meta.has_option(section, option):
+                    # Merge logic: Option exists in both, decide whether to overwrite
+                    default_value = default_meta.get(section, option)
+                    if value != default_value:
+                        print(f"Conflict detected: {section} {option} - {default_value} -> {value}")
+                        # Overwrite the option in default.meta
+                        default_meta.set(section, option, value)
+                default_meta.set(section, option, value)
+
+        # Write the merged configuration back to the output file
+        with open(dest_file, 'w') as file:
+            default_meta.write(file)
+
+        # Replace '[DEFAULT]' with '[]' in the output file
+        replace_default_with_empty_header(dest_file)
+
+        print(f"Merged metadata saved to {dest_file}")
+
+
+def unpack_merge_conf_and_meta_repack(app: str, path: str) -> None:
     """Unpack the app, load environment configuration files and repack the app."""
     temp_dir = "temp_unpack"
     os.makedirs(temp_dir, exist_ok=True)
@@ -120,15 +205,23 @@ def unpack_merge_conf_and_repack(app: str, path: str) -> None:
     with tarfile.open(f"{app}.tgz", "r:gz") as tar:
         tar.extractall(path=temp_dir)
     # Create default directory for unpacked app
-    default_dir = f"{temp_dir}/{app}/default"
-    os.makedirs(default_dir, exist_ok=True)
+    base_default_dir = f"{temp_dir}/{app}"
     # Load the environment configuration files
     app_dir = path
     # Copy all .conf files in app_dir to temp_dir of unpacked app
     for file in os.listdir(app_dir):
         if file.endswith(".conf"):
+            default_dir = base_default_dir + "/default"
+            os.makedirs(default_dir, exist_ok=True)
             source_path = os.path.join(app_dir, file)
             merge_or_copy_conf(source_path, default_dir)
+    # Copy all metadata files in app_dir to temp_dir of unpacked app
+    for file in os.listdir(app_dir):
+        if file.endswith(".meta"):
+            default_dir = base_default_dir + "/metadata"
+            os.makedirs(default_dir, exist_ok=True)
+            source_path = os.path.join(app_dir, file)
+            merge_or_copy_meta(source_path, default_dir)
     # Repack the app and place it in the root directory
     with tarfile.open(f"{app}.tgz", "w:gz") as tar:
         for root, _, files in os.walk(f"{temp_dir}/{app}"):
@@ -136,7 +229,6 @@ def unpack_merge_conf_and_repack(app: str, path: str) -> None:
                 full_path = os.path.join(root, file)
                 arcname = os.path.relpath(full_path, temp_dir)
                 tar.add(full_path, arcname=arcname)
-
 
 def get_appinspect_token() -> str:
     """
