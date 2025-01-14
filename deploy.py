@@ -45,7 +45,8 @@ def main():
 
             ### 2. Upload_local_configuration ###
             # Check if the configuration exists for the app
-            path = check_all_letter_cases(sys.argv[1], app)
+            path = os.path.join("environments", sys.argv[1], app)
+            print(path)
             if path:
                 unpack_merge_conf_and_meta_repack(app, path)
             else:
