@@ -3,7 +3,7 @@ target:
 apps:
   Splunk_TA_App1:
     s3-bucket: splunk-apps-deployment
-    source: apps/Splunk_TA_app1.tgz
+    source: apps/Splunk_TA_App1.tgz
     config:
       - ./Splunk_TA_app1/*.conf
   buttercup_app_for_splunk:

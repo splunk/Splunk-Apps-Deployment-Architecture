@@ -76,7 +76,7 @@ def main():
                         "distribution"
                     ] = f"failed with status code: {distribution_status}"
             else:
-                print(f"App {app} failed validation. Skipping distribution.")
+                print(f"App {app} failed validation. Skipping distribution.\n")
                 deployment_report[app][
                     "distribution"
                 ] = "failed due to app validation error"
