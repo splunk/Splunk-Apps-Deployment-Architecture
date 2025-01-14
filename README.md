@@ -27,6 +27,7 @@ Assumptions:
         ├── es
         │   ├── app1
         │   │   └── logging.conf
+        |   |   └── local.meta
         │   └── deployment.yml
         └── ses
             └── deployment.yml
