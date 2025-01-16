@@ -2,13 +2,21 @@ import sys
 import json
 import os
 
-import yaml
-
-from utils import *
+from modules.splunkcloud import SplunkCloudConnector
+from modules.aws_s3 import AwsS3Connector
+from modules.apps_processing import AppFilesProcessor
 
 # FOR LOCAL TESTING
 # from dotenv import load_dotenv
 # load_dotenv(dotenv_path="local.env")
+
+SPLUNK_USERNAME = os.getenv("SPLUNK_USERNAME")
+SPLUNK_PASSWORD = os.getenv("SPLUNK_PASSWORD")
+SPLUNK_TOKEN = os.getenv("SPLUNK_TOKEN")
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
 
 def main():
     if len(sys.argv) != 2:
@@ -17,43 +25,48 @@ def main():
 
     yaml_file_path = "environments/" + sys.argv[1] + "/deployment.yml"
 
+    # Initiate deployment report
     deployment_report = {}
 
-    try:
-        data = read_yaml(yaml_file_path)
-    except FileNotFoundError:
-        print(f"Error: The file '{yaml_file_path}' was not found.")
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
-        sys.exit(1)
+    # Initiate AppFilesProcessor object
+    app_processor = AppFilesProcessor(yaml_file_path)
+
     ### 1. Validate data and retrieve all apps listed in deployment.yml from S3 ###
-    private_apps, splunkbase_apps = validate_data(data)
+    data, private_apps, splunkbase_apps = app_processor.validate_data()
     # List all apps in yaml file and then their S3 bucket
     if private_apps:
         apps = data.get("apps", {}).keys()
         s3_buckets = [data["apps"][app]["s3-bucket"] for app in apps]
         app_directories = [data["apps"][app]["source"] for app in apps]
     target_url = data["target"]["url"]
-    # Download all apps from S3
+
+    # Initiate AwsS3Connector object
+    s3_connector = AwsS3Connector(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    # Check for private apps
     if private_apps:
         print("Found private apps in deployment.yml, starting deployment...")
+        # Loop through all apps
         for app, bucket, directory in zip(apps, s3_buckets, app_directories):
             object_name = directory
             file_name = f"{app}.tgz"
             # Donwload app from S3
-            download_file_from_s3(bucket, object_name, file_name)
+            s3_connector.download_file_from_s3(bucket, object_name, file_name)
 
             ### 2. Upload_local_configuration ###
             # Check if the configuration exists for the app
             path = os.path.join("environments", sys.argv[1], app)
             print(path)
             if path:
-                unpack_merge_conf_and_meta_repack(app, path)
+                app_processor.unpack_merge_conf_and_meta_repack(app, path)
             else:
                 print(f"No configuration found for app {app}. Skipping.")
 
             ### 3. Validate app for Splunk Cloud ###
-            report, token = cloud_validate_app(app)
+            # Initiate SplunkCloudConnector object
+            cloud_connector = SplunkCloudConnector(
+                SPLUNK_USERNAME, SPLUNK_PASSWORD, SPLUNK_TOKEN, target_url
+            )
+            report, token = cloud_connector.cloud_validate_app(app)
             if report is None:
                 print(f"App {app} failed validation.")
                 deployment_report[app] = {"validation": "failed"}
@@ -66,7 +79,7 @@ def main():
                 and result["failure"] == 0
                 and result["manual_check"] == 0
             ):
-                distribution_status = distribute_app(app, target_url, token)
+                distribution_status = cloud_connector.distribute_app(app, token)
                 if distribution_status == 200:
                     print(f"App {app} successfully distributed.\n")
                     deployment_report[app]["distribution"] = "success"
@@ -90,17 +103,18 @@ def main():
         for splunkbase_app in splunkbase_apps_dict:
             app = splunkbase_apps_dict[splunkbase_app]
             app_name = splunkbase_app
-            version = app['version']
-            app_id = get_app_id(app_name)
-            token = os.getenv("SPLUNK_TOKEN")
-            license = get_license_url(app_name)
-            install_status = install_splunkbase_app(app_name, app_id, version, target_url, token, license)
+            version = app["version"]
+            app_id = cloud_connector.get_app_id(app_name)
+            license = cloud_connector.get_license_url(app_name)
+            install_status = cloud_connector.install_splunkbase_app(
+                app_name, app_id, version, license
+            )
             print(f"App {app_name} installation status: {install_status}")
             deployment_report[app_name] = {
                 "splunkbase_installation": install_status,
                 "version": version,
                 "app_id": app_id,
-                }
+            }
     else:
         print("No Splunkbase apps found in deployment.yml, skipping...")
 
