@@ -17,6 +17,10 @@ Assumptions:
 │           ├── collections.conf
 │           └── logging.conf
 ├── deploy.py
+├── modules
+│   ├── apps_processing.py
+│   ├── aws_s3.py
+│   └── splunkcloud.py
 └── environments
     ├── prod
     │   ├── es
@@ -38,6 +42,7 @@ Assumptions:
   * deployment instructions per each environment (`deployment.yml`)
   * specific apps configurations (e.g. `uat/es/app1`)
 * `deploy.py` Used by the automation to perform the deployment
+* `modules/` Contains methods used in deployment automation
 
 This repository follows the same structure. Please navigate it to verify its content.
 
