@@ -25,7 +25,7 @@ class AppFilesProcessor:
 
         Return boolean values for private_apps and splunkbase_apps presence in the environment configuration
 
-        validate_data(data) -> (bool, bool)
+        validate_data(data) -> (dict, bool, bool)
         """
         try:
             data = self._read_yaml()
