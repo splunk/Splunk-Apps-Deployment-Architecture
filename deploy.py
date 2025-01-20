@@ -8,8 +8,8 @@ from modules.apps_processing import AppFilesProcessor, DeploymentParser
 from modules.report_generator import DeploymentReportGenerator
 
 # FOR LOCAL TESTING
-# from dotenv import load_dotenv
-# load_dotenv(dotenv_path="local.env")
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="local.env")
 
 SPLUNK_USERNAME = os.getenv("SPLUNK_USERNAME")
 SPLUNK_PASSWORD = os.getenv("SPLUNK_PASSWORD")

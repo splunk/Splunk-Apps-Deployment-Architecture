@@ -13,6 +13,8 @@ class SplunkCloudConnector:
     SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
     SPLUNKBASE_APP_URL = "https://splunkbase.splunk.com/api/v1/app"
 
+    SPLUNK_CLOUD_APP_INSTALL_ENDPOINT = "/adminconfig/v2/apps/victoria"
+
     def __init__(
         self,
         splunk_username: str = None,
@@ -125,8 +127,8 @@ class SplunkCloudConnector:
         distribute_app(app, target_url, token) -> status_code : int
         """
         print(f"Distributing {app} to {self.splunk_host}")
-        target_url = self.splunk_host
-        url = target_url
+        base_url = self.splunk_host
+        url = base_url + self.SPLUNK_CLOUD_APP_INSTALL_ENDPOINT
         admin_token = self.splunk_token
         headers = {
             "X-Splunk-Authorization": token,
@@ -138,7 +140,7 @@ class SplunkCloudConnector:
             with open(file_path, "rb") as file:
                 response = requests.post(url, headers=headers, data=file)
             print(
-                f"Distributed {app} to {target_url} with response: {response.status_code} {response.text}"
+                f"Distributed {app} to {base_url} with response: {response.status_code} {response.text}"
             )
         except Exception as e:
             print(f"Error distributing {app} to {self.splunk_host}: {e}")
@@ -182,7 +184,8 @@ class SplunkCloudConnector:
         # Authenticate to Splunkbase
         splunkbase_token = self.authenticate_splunkbase()
         # Install the app
-        target_url = self.splunk_host
+        base_url = self.splunk_host
+        target_url = base_url + self.SPLUNK_CLOUD_APP_INSTALL_ENDPOINT
         token = self.splunk_token
 
         url = f"{target_url}?splunkbase=true"

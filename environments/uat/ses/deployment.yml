@@ -1,5 +1,5 @@
 target:
-  url: https://staging.admin.splunk.com/scv-shw-d037e758abafa2/adminconfig/v2/apps/victoria
+  url: https://staging.admin.splunk.com/scv-shw-d037e758abafa2
 apps:
   Splunk_TA_app1:
     s3-bucket: splunk-apps-deployment
