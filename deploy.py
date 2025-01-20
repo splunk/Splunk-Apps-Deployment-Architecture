@@ -81,7 +81,6 @@ def main():
                 distribution_status = cloud_connector.distribute_app(app, token)
                 if distribution_status == 200:
                     print(f"App {app} successfully distributed.\n")
-                    # deployment_report[app]["distribution"] = "success"
                     deployment_report.add_data(app, ("distribution", "success"))
                 else:
                     print(f"App {app} failed distribution.")
