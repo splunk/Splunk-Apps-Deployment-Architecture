@@ -8,8 +8,8 @@ from modules.apps_processing import AppFilesProcessor, DeploymentParser
 from modules.report_generator import DeploymentReportGenerator
 
 # FOR LOCAL TESTING
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="local.env")
+# from dotenv import load_dotenv
+# load_dotenv(dotenv_path="local.env")
 
 SPLUNK_USERNAME = os.getenv("SPLUNK_USERNAME")
 SPLUNK_PASSWORD = os.getenv("SPLUNK_PASSWORD")
@@ -34,7 +34,7 @@ def main():
     target_url = data["target"]["url"]
 
     # Initiate AwsS3Connector object
-    s3_connector = boto3.client("s3") 
+    s3_connector = boto3.client("s3")
     # Check for private apps
     if deployment_parser.has_private_apps():
         print("Found private apps in deployment.yml, starting deployment...")
@@ -47,10 +47,10 @@ def main():
             object_name = directory
             file_name = f"{app}.tgz"
             # Donwload app from S3
-            try:  
+            try:
                 s3_connector.download_file(bucket, object_name, file_name)
-            except Exception as e:  
-                raise Exception(f"Error downloading {object_name} from {bucket}: {e}")  
+            except Exception as e:
+                raise Exception(f"Error downloading {object_name} from {bucket}: {e}")
 
             ### 2. Upload_local_configuration ###
             # Check if the configuration exists for the app
@@ -84,10 +84,18 @@ def main():
                     deployment_report.add_data(app, ("distribution", "success"))
                 else:
                     print(f"App {app} failed distribution.")
-                    deployment_report.add_data(app, ("distribution", f"failed with status code: {distribution_status}"))
+                    deployment_report.add_data(
+                        app,
+                        (
+                            "distribution",
+                            f"failed with status code: {distribution_status}",
+                        ),
+                    )
             else:
                 print(f"App {app} failed validation. Skipping distribution.\n")
-                deployment_report.add_data(app, ("distribution", "failed due to app validation error"))
+                deployment_report.add_data(
+                    app, ("distribution", "failed due to app validation error")
+                )
     else:
         print("No private apps found in deployment.yml, skipping...")
 
@@ -105,16 +113,20 @@ def main():
                 app_name, app_id, version, license
             )
             print(f"App {app_name} installation status: {install_status}")
-            deployment_report.add_data(app_name, {
-                "splunkbase_installation": install_status,
-                "version": version,
-                "app_id": app_id,
-            })
+            deployment_report.add_data(
+                app_name,
+                {
+                    "splunkbase_installation": install_status,
+                    "version": version,
+                    "app_id": app_id,
+                },
+            )
     else:
         print("No Splunkbase apps found in deployment.yml, skipping...")
 
     ### 6. Save deployment report to json file ###
     deployment_report.generate_report()
+
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,7 @@
 import os
 import json
+from typing import Union
+
 
 class DeploymentReportGenerator:
     """Class for generating deployment report."""
@@ -10,7 +12,7 @@ class DeploymentReportGenerator:
     def __str__(self) -> str:
         return str(self.deployment_report)
 
-    def add_data(self, key: str, value: tuple|dict) -> None:
+    def add_data(self, key: str, value: Union[tuple, dict]) -> None:
         """Add data to deployment report."""
         deployment_report = self.deployment_report
         if key not in deployment_report:

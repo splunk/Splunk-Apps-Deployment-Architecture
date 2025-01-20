@@ -8,13 +8,14 @@ import json
 from io import StringIO
 
 
-
 class DeploymentParser:
     """Class for parsing the deployment configuration file."""
 
     def __init__(self):
         if not "DEPLOYMENT_CONFIG_PATH" in os.environ:
-            raise Exception(f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist.")
+            raise Exception(
+                f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist."
+            )
         yml_path = os.path.join(os.getenv("DEPLOYMENT_CONFIG_PATH"), "deployment.yml")
         # Read the file
         try:
@@ -24,7 +25,7 @@ class DeploymentParser:
             raise Exception(f"File not found: {yml_path}")
         except yaml.YAMLError as e:
             raise Exception(f"Error parsing YAML file: {e}")
-        
+
     def _validate_data(self) -> None:
         """
         Validate the data in the YAML file.
@@ -52,15 +53,15 @@ class DeploymentParser:
             print("Error: The 'splunkbase-apps' key is missing.")
             sys.exit(1)
 
-    def parse(self) -> tuple:  
-        """  
-        Return the parsed data from the deployment configuration file. 
+    def parse(self) -> tuple:
+        """
+        Return the parsed data from the deployment configuration file.
 
-        parse() -> (dict, dict, dict)  
-        """  
-        self._validate_data()  
-        private_apps_dict = self.data.get("apps", {})  
-        splunkbase_dict = self.data.get("splunkbase-apps", {})  
+        parse() -> (dict, dict, dict)
+        """
+        self._validate_data()
+        private_apps_dict = self.data.get("apps", {})
+        splunkbase_dict = self.data.get("splunkbase-apps", {})
 
         return self.data, private_apps_dict, splunkbase_dict
 
@@ -72,7 +73,7 @@ class DeploymentParser:
         """
         private_apps = self.parse()[1]
         return True if private_apps else False
-    
+
     def has_splunkbase_apps(self) -> bool:
         """
         Check if Splunkbase apps are present in the deployment configuration.
@@ -90,7 +91,7 @@ class DeploymentParser:
         """
         private_apps = self.parse()[1]
         return private_apps.keys()
-    
+
     def get_s3_buckets(self) -> list:
         """
         Return a list of S3 buckets from the deployment configuration.
@@ -100,7 +101,7 @@ class DeploymentParser:
         data = self.parse()[0]
         apps = self.get_private_apps()
         return [data["apps"][app]["s3-bucket"] for app in apps]
-    
+
     def get_app_directories(self) -> list:
         """
         Return a list of app directories from the deployment configuration.
@@ -110,7 +111,7 @@ class DeploymentParser:
         data = self.parse()[0]
         apps = self.get_private_apps()
         return [data["apps"][app]["source"] for app in apps]
-    
+
     def get_splunkbase_apps(self) -> dict:
         """
         Return a dictionary of Splunkbase apps from the deployment configuration.
@@ -119,13 +120,16 @@ class DeploymentParser:
         """
         splunkbase_apps = self.parse()[2]
         return splunkbase_apps
-    
+
+
 class AppFilesProcessor:
     """Class for handling local app files and configurations."""
 
     def __init__(self):
         if not "DEPLOYMENT_CONFIG_PATH" in os.environ:
-            raise Exception(f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist.")
+            raise Exception(
+                f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist."
+            )
         yml_path = os.path.join(os.getenv("DEPLOYMENT_CONFIG_PATH"), "deployment.yml")
         # Read the file
         try:
