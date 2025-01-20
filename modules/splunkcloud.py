@@ -102,7 +102,6 @@ class AppInspectService:
                 print(f"App {app} validation timed out.")
                 return
 
-            print(f"Current status: {response_json['status']}. Fetching summary.")
             if response_json["status"] == "SUCCESS":
                 print("App validation successful.")
 
