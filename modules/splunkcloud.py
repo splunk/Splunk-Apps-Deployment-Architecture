@@ -4,49 +4,56 @@ import time
 
 import xml.etree.ElementTree as ET
 
+# TODO remove following. Used for local testing only.
+# from dotenv import load_dotenv
+# load_dotenv(dotenv_path="local.env")
 
-class SplunkCloudConnector:
-    """Class for connecting to Splunk Cloud and Splunkbase."""
 
-    SPLUNK_AUTH_BASE_URL = "https://api.splunk.com/2.0/rest/login/splunk"
-    SPLUNK_APPINSPECT_BASE_URL = "https://appinspect.splunk.com/v1"
-    SPLUNKBASE_BASE_URL = "https://splunkbase.splunk.com/api/account:login"
-    SPLUNKBASE_APP_URL = "https://splunkbase.splunk.com/api/v1/app"
+class SplunkCloudAccountConfig:
+    username: str = os.getenv("SPLUNK_USERNAME")
+    password: str = os.getenv("SPLUNK_PASSWORD")
+    token: str = os.getenv("SPLUNK_TOKEN")
 
-    SPLUNK_CLOUD_APP_INSTALL_ENDPOINT = "/adminconfig/v2/apps/victoria"
+    @classmethod
+    def to_dict(cls) -> dict:
+        return cls.__dict__
 
-    def __init__(
-        self,
-        splunk_username: str = None,
-        splunk_password: str = None,
-        splunk_token: str = None,
-        splunk_host: str = None,
-    ):
-        self.splunk_username = splunk_username
-        self.splunk_password = splunk_password
-        self.splunk_token = splunk_token
-        self.splunk_host = splunk_host
 
-    def get_appinspect_token(self) -> str:
+class AppInspectService:
+    base_url: str = "https://appinspect.splunk.com/v1"
+    auth_url: str = "https://api.splunk.com/2.0/rest/login/splunk"
+    report: dict = {}
+    tags: str = "private_victoria"
+
+    def __init__(self, cloud_type: str = "victoria"):
+        self.account = SplunkCloudAccountConfig.to_dict()
+        self.tags = f"private_{cloud_type}"
+
+    def get_token(self) -> str:
         """
         Authenticate to the Splunk Cloud.
 
-        get_appinspect_token() -> token : str
+        get_token() -> token : str
         """
-        url = self.SPLUNK_AUTH_BASE_URL
-        username = self.splunk_username
-        password = self.splunk_password
+        try:
+            response = requests.get(
+                self.auth_url, auth=(self.account["username"], self.account["password"])
+            )
+            token = response.json()["data"]["token"]
+            print("AppInspectService: get_token() - success")
+            return token
+        except requests.exceptions.RequestException as e:
+            print(f"Error getting token: {e}")
+            return None
 
-        response = requests.get(url, auth=(username, password))
-        token = response.json()["data"]["token"]
-        return token
-
-    def validation_request_helper(self, url: str, headers: dict, files: dict) -> str:
+    def _get_request_id(self, headers: dict, files: dict) -> str:
         """
         Helper function to make a validation request and return the request ID.
 
-        validation_request_helper(url, headers, files) -> request_id : str
+        _get_request_id(headers, files) -> request_id : str
         """
+        url = f"{self.base_url}/app/validate"
+
         try:
             response = requests.post(url, headers=headers, files=files, timeout=120)
             response_json = response.json()
@@ -56,108 +63,92 @@ class SplunkCloudConnector:
             return None
         return request_id
 
-    def cloud_validate_app(self, app: str) -> tuple:
+    def validate(self, app: str) -> bool:
         """
         Validate the app for the Splunk Cloud.
 
-        cloud_validate_app(app) -> report : dict, token : str
+        validate(app) -> is_valid: bool
         """
-        token = self.get_appinspect_token()
-        base_url = self.SPLUNK_APPINSPECT_BASE_URL
-        url = f"{base_url}/app/validate"
-
+        token = self.get_token()
         headers = {"Authorization": f"Bearer {token}"}
-        app_file_path = f"{app}.tgz"
 
         print(f"Validating app {app}...")
-        with open(app_file_path, "rb") as file:
-            files = {"app_package": file}
-            request_id = self.validation_request_helper(url, headers, files)
-            headers = {"Authorization": f"Bearer {token}"}
-            status_url = f"{base_url}/app/validate/status/{request_id}?included_tags=private_victoria"
+        with open(f"{app}.tgz", "rb") as file:
+            request_id = self._get_request_id(headers, {"app_package": file})
+            status_url = f"{self.base_url}/app/validate/status/{request_id}?included_tags={self.tags}"
+
             try:
-                response_status = requests.get(status_url, headers=headers)
+                response = requests.get(status_url, headers=headers)
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
                 return None, None
 
             max_retries = 60  # Maximum number of retries
             retries = 0
-            response_status_json = response_status.json()
+            response_json = response.json()
 
-            while response_status_json["status"] != "SUCCESS" and retries < max_retries:
-                response_status = requests.get(status_url, headers=headers)
-                response_status_json = response_status.json()
+            while response_json["status"] != "SUCCESS" and retries < max_retries:
+                response = requests.get(status_url, headers=headers)
+                response_json = response.json()
                 retries += 1
-                if response_status_json["status"] == "FAILURE":
-                    print(
-                        f"App {app} failed validation: {response_status_json['errors']}"
-                    )
+                if response_json["status"] == "FAILURE":
+                    print(f"App {app} failed validation: {response_json['errors']}")
                     break
                 else:
                     print(f"App {app} awaiting validation...")
-                    print(f"Current status: {response_status_json['status']}")
+                    print(f"Current status: {response_json['status']}")
                     time.sleep(10)
-                    response_status = requests.get(status_url, headers=headers)
-                    response_status_json = response_status.json()
-                    continue
             if retries == max_retries:
                 print(f"App {app} validation timed out.")
                 return
 
-            print(f"Current status: {response_status_json['status']}")
-            if response_status_json["status"] == "SUCCESS":
+            print(f"Current status: {response_json['status']}. Fetching summary.")
+            if response_json["status"] == "SUCCESS":
                 print("App validation successful.")
-                print("Installing app...")
 
-            response_report = requests.get(
-                f"{base_url}/app/report/{request_id}?included_tags=private_victoria",
+            response = requests.get(
+                f"{self.base_url}/app/report/{request_id}?included_tags=private_victoria",
                 headers=headers,
             )
-            report = response_report.json()
-            result = report["summary"]
-            print(result)
+            self.report = response.json()
+            summary = self.report["summary"]
 
-            return report, token
-
-    def distribute_app(self, app: str, token: str) -> int:
-        """
-        Distribute the app to the target URL.
-
-        distribute_app(app, target_url, token) -> status_code : int
-        """
-        print(f"Distributing {app} to {self.splunk_host}")
-        base_url = self.splunk_host
-        url = base_url + self.SPLUNK_CLOUD_APP_INSTALL_ENDPOINT
-        admin_token = self.splunk_token
-        headers = {
-            "X-Splunk-Authorization": token,
-            "Authorization": f"Bearer {admin_token}",
-            "ACS-Legal-Ack": "Y",
-        }
-        file_path = f"{app}.tgz"
-        try:
-            with open(file_path, "rb") as file:
-                response = requests.post(url, headers=headers, data=file)
-            print(
-                f"Distributed {app} to {base_url} with response: {response.status_code} {response.text}"
+            return (
+                summary["error"] == 0
+                and summary["failure"] == 0
+                and summary["manual_check"] == 0
             )
-        except Exception as e:
-            print(f"Error distributing {app} to {self.splunk_host}: {e}")
-            return 500
 
-        return response.status_code
 
-    def authenticate_splunkbase(self) -> str:
+class SplunkbaseService:
+    base_url: str = "https://splunkbase.splunk.com/api/v1/app"
+    auth_url: str = "https://splunkbase.splunk.com/api/account:login"
+    token: str = None
+
+    def __init__(self):
+        self.account = SplunkCloudAccountConfig.to_dict()
+
+    def get_app_info(self, app_name: str) -> dict:
+        params = {"query": app_name, "limit": 1}
+        response = requests.get(self.base_url, params=params)
+        if len(response.json().get("results")) > 0:
+            return response.json().get("results")[0]
+        else:
+            print(f"App {app_name} not found on Splunkbase.")
+            return None
+
+    def _authenticate(self) -> None:
         """
         Authenticate to Splunkbase.
 
-        authenticate_splunkbase() -> token : str
+        _authenticate() -> token : str
         """
-        url = self.SPLUNKBASE_BASE_URL
-        data = {"username": self.splunk_username, "password": self.splunk_password}
-        response = requests.post(url, data=data)
+        data = {
+            "username": self.account["username"],
+            "password": self.account["password"],
+        }
 
+        response = requests.post(self.auth_url, data=data)
         if response.ok:
             # Parse the XML response
             xml_root = ET.fromstring(response.text)
@@ -166,54 +157,86 @@ class SplunkCloudConnector:
             splunkbase_token = xml_root.find(
                 "atom:id", namespace
             ).text  # Find the <id> tag with the namespace
-            return splunkbase_token
+            self.token = splunkbase_token
         else:
             print("Splunkbase login failed!")
             print(f"Status code: {response.status_code}")
             print(response.text)
-            return None
 
-    def install_splunkbase_app(
-        self, app: str, app_id: str, version: str, licence: str
-    ) -> str:
+    def get_token(self):
+        if not self.token:
+            self._authenticate()
+        return self.token
+
+
+class SplunkCloudConnector:
+    """Class for connecting to Splunk Cloud and Splunkbase."""
+
+    def __init__(self, splunk_host: str = None, cloud_type: str = "victoria"):
+        self.config = SplunkCloudAccountConfig.to_dict()
+        self.appinspect = AppInspectService()
+        self.splunkbase = SplunkbaseService()
+        self.host = splunk_host
+        if cloud_type == "classic":
+            cloud_type = ""
+        self.cloud_type = f"/{cloud_type}"
+
+    def get_appinspect_handler(self):
+        return self.appinspect
+
+    def distribute(self, app: str) -> tuple:
+        """
+        Distribute a private app to the target URL.
+
+        distribute(app) -> was_successful : bool, status_code: int
+        """
+        url = f"{self.host}/adminconfig/v2/apps{self.cloud_type}"
+        print(f"Distributing {app} to {url}")
+        headers = {
+            "X-Splunk-Authorization": self.appinspect.get_token(),
+            "Authorization": f"Bearer {self.config.get('token')}",
+            "ACS-Legal-Ack": "Y",
+        }
+        try:
+            with open(f"{app}.tgz", "rb") as file:
+                response = requests.post(url, headers=headers, data=file)
+            print(f"Distributed {app} to {url} with response: {response.status_code}")
+        except Exception as e:
+            print(f"Error distributing {app} to {url}: {e}")
+            return False, 500
+
+        return response.status_code == 200, response.status_code
+
+    def install(self, app: str, version: str) -> str:
         """
         Install a Splunkbase app.
 
-        install_splunkbase_app(app, app_id, version, target_url, token, licence) -> status : str
+        install(app, version) -> status : str
         """
-        # Authenticate to Splunkbase
-        splunkbase_token = self.authenticate_splunkbase()
-        # Install the app
-        base_url = self.splunk_host
-        target_url = base_url + self.SPLUNK_CLOUD_APP_INSTALL_ENDPOINT
-        token = self.splunk_token
-
-        url = f"{target_url}?splunkbase=true"
-
+        token = self.splunkbase.get_token()
+        url = f"{self.host}/adminconfig/v2/apps{self.cloud_type}?splunkbase=true"
+        app_info = self.splunkbase.get_app_info(app)
         headers = {
-            "X-Splunkbase-Authorization": splunkbase_token,
-            "ACS-Licensing-Ack": licence,
-            "Authorization": f"Bearer {token}",
+            "X-Splunkbase-Authorization": token,
+            "ACS-Licensing-Ack": app_info.get("license_url"),
+            "Authorization": f"Bearer {self.config.get('token')}",
             "Content-Type": "application/x-www-form-urlencoded",
         }
-        data = {"splunkbaseID": app_id, "version": version}
+        data = {"splunkbaseID": app_info.get("uid"), "version": version}
 
         response = requests.post(url, headers=headers, data=data)
         # Handle the case where the app is already installed
         if response.status_code == 409:
             print(f"App {app} is already installed.")
-            print(f"Updating app {app} to version {version}...")
-            # Get app name
-            url = f"https://splunkbase.splunk.com/api/v1/app/{app_id}"
-            response = requests.get(url)
-            app_name = response.json().get("appid")
-            print(f"App name: {app_name}")
+            app_name = app_info.get("appid")
+            print(f"Updating app {app} ({app_name}) to version {version}...")
             # Update the app
-            url = f"{target_url}/{app_name}"
+            url = f"{self.host}/{app_name}"
             data = {"version": version}
             response = requests.patch(url, headers=headers, data=data)
             return "success - existing app updated"
-        elif response.ok:
+
+        if response.ok:
             request_status = response.json()["status"]
             print(f"Request status: {request_status}")
             if request_status in ("installed", "processing"):
@@ -222,40 +245,8 @@ class SplunkCloudConnector:
             else:
                 print(f"App {app} version {version} installation failed.")
                 return f"failed with status: {request_status} - {response.text}"
-        else:
-            print("Request failed!")
-            print(f"Status code: {response.status_code}")
-            print(response.text)
-            return f"failed with status code: {response.status_code} - {response.text}"
 
-    def get_app_id(self, app_name: str) -> str:
-        """
-        Get the Splunkbase app ID.
-
-        get_app_id(app_name) -> app_id : str
-        """
-        url = self.SPLUNKBASE_APP_URL
-        params = {"query": app_name, "limit": 1}
-        response = requests.get(url, params=params)
-        if len(response.json().get("results")) > 0:
-            app_id = response.json().get("results")[0].get("uid")
-            return app_id
-        else:
-            print(f"App {app_name} not found on Splunkbase.")
-            return None
-
-    def get_license_url(self, app_name: str) -> str:
-        """
-        Get the licence URL for a Splunkbase app.
-
-        get_licence_url(app_name) -> licence_url : str
-        """
-        url = self.SPLUNKBASE_APP_URL
-        params = {"query": app_name, "limit": 1}
-        response = requests.get(url, params=params)
-        if len(response.json().get("results")) > 0:
-            license_url = response.json().get("results")[0].get("license_url")
-            return license_url
-        else:
-            print(f"App {app_name} not found on Splunkbase.")
-            return None
+        print("Request failed!")
+        print(f"Status code: {response.status_code}")
+        print(response.text)
+        return f"failed with status code: {response.status_code} - {response.text}"
