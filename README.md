@@ -19,7 +19,7 @@ Assumptions:
 ├── deploy.py
 ├── modules
 │   ├── apps_processing.py
-│   ├── aws_s3.py
+│   ├── report_generatot.py
 │   └── splunkcloud.py
 └── environments
     ├── prod
