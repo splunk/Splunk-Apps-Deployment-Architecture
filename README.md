@@ -19,7 +19,7 @@ Assumptions:
 ├── deploy.py
 ├── modules
 │   ├── apps_processing.py
-│   ├── report_generatot.py
+│   ├── report_generator.py
 │   └── splunkcloud.py
 └── environments
     ├── prod
@@ -51,6 +51,7 @@ As mentioned, these deployment files specify the apps and configurations needed 
 ```yml
 target:
   url: <deployment server URL>
+  experience: <victoria|classic>
 apps:
   # Private apps
   app1:
