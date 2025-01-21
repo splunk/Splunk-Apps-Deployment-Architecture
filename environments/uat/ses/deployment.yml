@@ -1,5 +1,6 @@
 target:
   url: https://staging.admin.splunk.com/scv-shw-d037e758abafa2
+  experience: victoria
 apps:
   Splunk_TA_app1:
     s3-bucket: splunk-apps-deployment
@@ -7,7 +8,7 @@ apps:
     config:
       - ./Splunk_TA_app1/*.conf
 splunkbase-apps:
-  TA for Tebable:
+  Tenable Add-On for Splunk:
     version: 7.0.0
-  TA for MS Azure:
+  Splunk Add on for Microsoft Azure:
     version: 4.2.0
