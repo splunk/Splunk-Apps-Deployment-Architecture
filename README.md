@@ -50,10 +50,11 @@ This repository follows the same structure. Please navigate it to verify its con
 As mentioned, these deployment files specify the apps and configurations needed on each specific environment. Example:
 ```yml
 target:
-  url: <deployment server URL>
+  url: https://admin.splunk.com/{stack}
   experience: <victoria|classic>
 apps:
   # Private apps
+  # - Leave empty if target does not need private apps
   app1:
     s3-bucket: bucket-1
     source: apps/app1.tgz
@@ -63,7 +64,8 @@ apps:
       - ./app1/*.conf
 splunkbase-apps:
   # Splunkbase apps
-  cb-protection-app-for-splunk:
+  # - Leave empty if target does not need private apps
+  Cb Protection App for Splunk:
     version: 1.0.0
 ```
 
