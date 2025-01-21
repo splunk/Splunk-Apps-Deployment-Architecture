@@ -1,5 +1,5 @@
 # Splunk Apps Deployment Architecture
-This is just an idea developed for Philips Electronics Nederland within the context of [JIRA ticket](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
+This is just an idea developed within the context of [JIRA ticket](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
 
 Assumptions:
 * All apps are stored into a single GitHub repository
