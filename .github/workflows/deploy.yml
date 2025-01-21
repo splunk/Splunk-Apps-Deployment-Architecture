@@ -44,7 +44,7 @@ jobs:
           DEPLOYMENT_CONFIG_PATH: "environments/${{ matrix.environment.name }}"
         run: |
           echo "Deploying to ${{ matrix.environment.name }} environment"
-          python -u deploy.py 
+          python -u deploy.py
       - name: Upload deployment report as artifact
         uses: actions/upload-artifact@v3
         with:
