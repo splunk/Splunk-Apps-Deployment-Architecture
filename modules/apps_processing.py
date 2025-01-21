@@ -6,64 +6,64 @@ import configparser
 import tarfile
 import json
 from io import StringIO
+from schema import (
+    Schema,
+    SchemaError,
+    Or,
+    Optional,
+    Regex
+)
 
+
+deployment_schema = Schema({
+    "target": {
+        "url": str,
+        "experience": Or("classic", "victoria")
+    },
+    "apps": {
+        Optional(str): {
+            "s3-bucket": str,
+            "source": str,
+            Optional("config"): [
+                str
+            ]
+        }
+    },
+    "splunkbase-apps": {
+        Optional(str): {
+            "version": Regex(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+        }
+    }
+})
 
 class DeploymentParser:
     """Class for parsing the deployment configuration file."""
+    private_apps: dict = {}
+    splunkbase_apps: dict = {}
+    target: dict = {}
 
     def __init__(self):
+        # Read and parse data
         if not "DEPLOYMENT_CONFIG_PATH" in os.environ:
             raise Exception(
                 f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist."
             )
         yml_path = os.path.join(os.getenv("DEPLOYMENT_CONFIG_PATH"), "deployment.yml")
-        # Read the file
+
         try:
             with open(yml_path, "r") as file:
-                self.data = yaml.safe_load(file)
+                data = yaml.safe_load(file)
+                deployment_schema.validate(data)
+
+                self.private_apps = data.get("apps", {})
+                self.splunkbase_apps = data.get("splunkbase-apps", {})
+                self.target = data.get("target", {})
         except FileNotFoundError:
             raise Exception(f"File not found: {yml_path}")
         except yaml.YAMLError as e:
             raise Exception(f"Error parsing YAML file: {e}")
-
-    def _validate_data(self) -> None:
-        """
-        Validate the data in the YAML file.
-
-        validate_data(data) -> None
-        """
-        try:
-            data = self.data
-        except FileNotFoundError:
-            print(f"Error: The file '{self.yml_path}' was not found.")
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML file: {e}")
-            sys.exit(1)
-
-        if "apps" not in data:
-            print("Error: The 'apps' key is missing in deploy.yml fime.")
-            sys.exit(1)
-        if "target" not in data:
-            print("Error: The 'target' key is missing in deploy.yml file.")
-            sys.exit(1)
-        if "url" not in data["target"]:
-            print("Error: The 'url' key is missing in the 'target' section.")
-            sys.exit(1)
-        if "splunkbase-apps" not in data:
-            print("Error: The 'splunkbase-apps' key is missing.")
-            sys.exit(1)
-
-    def parse(self) -> tuple:
-        """
-        Return the parsed data from the deployment configuration file.
-
-        parse() -> (dict, dict, dict)
-        """
-        self._validate_data()
-        private_apps_dict = self.data.get("apps", {})
-        splunkbase_dict = self.data.get("splunkbase-apps", {})
-
-        return self.data, private_apps_dict, splunkbase_dict
+        except SchemaError as se:
+            raise Exception(f"Error validating {yml_path}: {se}")
 
     def has_private_apps(self) -> bool:
         """
@@ -71,8 +71,7 @@ class DeploymentParser:
 
         has_private_apps() -> bool
         """
-        private_apps = self.parse()[1]
-        return True if private_apps else False
+        return True if self.private_apps else False
 
     def has_splunkbase_apps(self) -> bool:
         """
@@ -80,65 +79,60 @@ class DeploymentParser:
 
         has_splunkbase_apps() -> bool
         """
-        splunkbase_apps = self.parse()[2]
-        return True if splunkbase_apps else False
+        return True if self.splunkbase_apps else False
 
-    def get_private_apps(self) -> list:
+    @property
+    def url(self) -> str:
         """
-        Return a dictionary of private apps from the deployment configuration.
+        Return the targeted url from the deployment configuration.
+        """
+        return self.target["url"]
 
-        get_apps() -> list
+    @property
+    def cloud_experience(self) -> str:
         """
-        private_apps = self.parse()[1]
-        return private_apps.keys()
+        Return the targeted platform cloud experience from the deployment configuration.
+        """
+        return self.target["experience"]
 
-    def get_s3_buckets(self) -> list:
+    def get_bucket(self, app: str) -> str:
         """
-        Return a list of S3 buckets from the deployment configuration.
+        Return the app S3 bucket from the deployment configuration.
 
-        s3_buckets() -> list
+        get_bucket(app) -> str
         """
-        data = self.parse()[0]
-        apps = self.get_private_apps()
-        return [data["apps"][app]["s3-bucket"] for app in apps]
+        return self.private_apps[app]["s3-bucket"]
 
-    def get_app_directories(self) -> list:
+    def get_app_path(self, app: str) -> str:
         """
-        Return a list of app directories from the deployment configuration.
+        Return the app path from the deployment configuration.
 
-        get_app_directories() -> list
+        get_app_path(app) -> str
         """
-        data = self.parse()[0]
-        apps = self.get_private_apps()
-        return [data["apps"][app]["source"] for app in apps]
+        return self.private_apps[app]["source"]
 
-    def get_splunkbase_apps(self) -> dict:
+    def get_app_configs(self, app: str) -> list:
         """
-        Return a dictionary of Splunkbase apps from the deployment configuration.
+        Return a list of app configuration paths from the deployment configuration.
 
-        get_splunkbase_apps() -> dict
+        get_app_configs(app) -> list
         """
-        splunkbase_apps = self.parse()[2]
-        return splunkbase_apps
+        return self.private_apps[app]["config"]
+
+    def get_version(self, app: str) -> str:
+        """
+        Return the Splunkbase app version from the deployment configuration.
+
+        get_version(app) -> str
+        """
+        return self.splunkbase_apps[app]["version"]
 
 
 class AppFilesProcessor:
     """Class for handling local app files and configurations."""
 
-    def __init__(self):
-        if not "DEPLOYMENT_CONFIG_PATH" in os.environ:
-            raise Exception(
-                f"Error - Environment variable DEPLOYMENT_CONFIG_PATH does not exist."
-            )
-        yml_path = os.path.join(os.getenv("DEPLOYMENT_CONFIG_PATH"), "deployment.yml")
-        # Read the file
-        try:
-            with open(yml_path, "r") as file:
-                self.data = yaml.safe_load(file)
-        except FileNotFoundError:
-            raise Exception(f"File not found: {yml_path}")
-        except yaml.YAMLError as e:
-            raise Exception(f"Error parsing YAML file: {e}")
+    def __init__(self, deployment_parser: DeploymentParser):
+        self.deployment_config = deployment_parser
 
     def _preprocess_empty_headers(self, file_path: str) -> list:
         """
