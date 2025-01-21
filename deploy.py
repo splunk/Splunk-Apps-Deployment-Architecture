@@ -5,9 +5,6 @@ from modules.splunkcloud import SplunkCloudConnector
 from modules.apps_processing import AppFilesProcessor, DeploymentParser
 from modules.report_generator import DeploymentReportGenerator
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-
 DEPLOYMENT_CONFIG_PATH = os.getenv("DEPLOYMENT_CONFIG_PATH")
 
 
@@ -21,9 +18,7 @@ def main():
     # Initiate AppFilesProcessor object
     app_processor = AppFilesProcessor(config)
     # Initiate SplunkCloudConnector object
-    cloud_connector = SplunkCloudConnector(
-        config.url, config.cloud_experience
-    )
+    cloud_connector = SplunkCloudConnector(config.url, config.cloud_experience)
 
     # Check for private apps
     if config.has_private_apps():
@@ -80,11 +75,11 @@ def main():
     if config.has_splunkbase_apps():
         print("Found Splunkbase apps, starting deployment...")
         for splunkbase_app in config.splunkbase_apps.keys():
-            version = config.get_version(app)
-            install_status = cloud_connector.install(app, version)
-            print(f"App {app} installation status: {install_status}")
+            version = config.get_version(splunkbase_app)
+            install_status = cloud_connector.install(splunkbase_app, version)
+            print(f"App {splunkbase_app} installation status: {install_status}")
             deployment_report.add_data(
-                app,
+                splunkbase_app,
                 {"splunkbase_installation": install_status, "version": version},
             )
     else:
