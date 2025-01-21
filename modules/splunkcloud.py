@@ -97,6 +97,8 @@ class AppInspectService:
                 else:
                     print(f"App {app} awaiting validation...")
                     print(f"Current status: {response_json['status']}")
+                    if response_json["status"] == "SUCCESS":
+                        break
                     time.sleep(10)
             if retries == max_retries:
                 print(f"App {app} validation timed out.")
