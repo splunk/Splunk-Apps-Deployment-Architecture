@@ -1,5 +1,6 @@
 target:
   url: https://splunk-es-prod.example.com
+  experience: classic
 apps:
   app1:
     s3-bucket: splunk-apps-deployment

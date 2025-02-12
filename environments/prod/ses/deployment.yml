@@ -1,6 +1,8 @@
 target:
   url: <Staging ES URL>
+  experience: <classic|victoria>
 apps:
   app1:
     s3-bucket: splunk-apps-deployment
     source: apps/Splunk_TA_app1.tgz
+splunkbase-apps:

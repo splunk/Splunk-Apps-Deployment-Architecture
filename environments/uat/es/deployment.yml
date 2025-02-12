@@ -1,5 +1,6 @@
 target:
-  url: https://staging.admin.splunk.com/scv-shw-217bd09bcbf264/adminconfig/v2/apps/victoria
+  url: https://staging.admin.splunk.com/scv-shw-a7f6020a334e01
+  experience: victoria
 apps:
   Splunk_TA_app1:
     s3-bucket: splunk-apps-deployment
@@ -12,7 +13,6 @@ apps:
     config:
       - ./buttercup_app_for_splunk/*.conf
 splunkbase-apps:
-  # Splunkbase apps
   Splunk Add-on for Amazon Web Services:
     version: 7.9.0
   Cisco Networks Add-on for Splunk Enterprise:

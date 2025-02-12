@@ -1,5 +1,5 @@
 # Splunk Apps Deployment Architecture
-This is just an idea developed for Philips Electronics Nederland within the context of [JIRA ticket](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
+This is just an idea developed within the context of [JIRA ticket](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
 
 Assumptions:
 * All apps are stored into a single GitHub repository
@@ -17,6 +17,10 @@ Assumptions:
 │           ├── collections.conf
 │           └── logging.conf
 ├── deploy.py
+├── modules
+│   ├── apps_processing.py
+│   ├── report_generator.py
+│   └── splunkcloud.py
 └── environments
     ├── prod
     │   ├── es
@@ -38,6 +42,7 @@ Assumptions:
   * deployment instructions per each environment (`deployment.yml`)
   * specific apps configurations (e.g. `uat/es/app1`)
 * `deploy.py` Used by the automation to perform the deployment
+* `modules/` Contains methods used in deployment automation
 
 This repository follows the same structure. Please navigate it to verify its content.
 
@@ -45,9 +50,11 @@ This repository follows the same structure. Please navigate it to verify its con
 As mentioned, these deployment files specify the apps and configurations needed on each specific environment. Example:
 ```yml
 target:
-  url: <deployment server URL>
+  url: https://admin.splunk.com/{stack}
+  experience: <victoria|classic>
 apps:
   # Private apps
+  # - Leave empty if target does not need private apps
   app1:
     s3-bucket: bucket-1
     source: apps/app1.tgz
@@ -57,7 +64,8 @@ apps:
       - ./app1/*.conf
 splunkbase-apps:
   # Splunkbase apps
-  cb-protection-app-for-splunk:
+  # - Leave empty if target does not need private apps
+  Cb Protection App for Splunk:
     version: 1.0.0
 ```
 
