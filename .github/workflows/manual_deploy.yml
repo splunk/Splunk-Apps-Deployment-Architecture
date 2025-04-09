@@ -8,14 +8,14 @@ jobs:
     strategy:
       matrix:
         environment:
-          - name: "uat/ses"
-            token_key: "SPLUNK_TOKEN_UAT_SES"
-          - name: "uat/es"
-            token_key: "SPLUNK_TOKEN_UAT_ES"
+          - name: "test/stg"
+            token_key: "SPLUNK_TOKEN_TEST_STG"
+          - name: "test/es"
+            token_key: "SPLUNK_TOKEN_TEST_ES"
           - name: "prod/es"
             token_key: "SPLUNK_TOKEN_PROD_ES"
-          - name: "prod/ses"
-            token_key: "SPLUNK_TOKEN_PROD_SES"
+          - name: "prod/stg"
+            token_key: "SPLUNK_TOKEN_PROD_STG"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

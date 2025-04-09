@@ -20,20 +20,20 @@ Assumptions:
 ├── modules
 │   ├── apps_processing.py
 │   ├── report_generator.py
-│   └── splunkcloud.py
+│   └── splunk_cloud.py
 └── environments
     ├── prod
     │   ├── es
     │   │   └── deployment.yml
-    │   └── ses
+    │   └── stg
     │       └── deployment.yml
-    └── uat
+    └── test
         ├── es
         │   ├── app1
         │   │   └── logging.conf
         |   |   └── local.meta
         │   └── deployment.yml
-        └── ses
+        └── stg
             └── deployment.yml
 
 ```

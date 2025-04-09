@@ -1,7 +1,7 @@
 import os
 import boto3
 
-from modules.splunkcloud import SplunkCloudConnector
+from modules.splunk_cloud import SplunkCloudConnector
 from modules.apps_processing import AppFilesProcessor, DeploymentParser
 from modules.report_generator import DeploymentReportGenerator
 
