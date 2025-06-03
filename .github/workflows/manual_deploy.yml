@@ -35,6 +35,7 @@ jobs:
           SPLUNK_USERNAME: ${{ secrets.SPLUNK_USERNAME }}
           SPLUNK_PASSWORD: ${{ secrets.SPLUNK_PASSWORD }}
           SPLUNK_TOKEN: ${{ secrets[matrix.environment.token_key] }}
+          DEPLOYMENT_CONFIG_PATH: "environments/${{ matrix.environment.name }}"
         run: |
           echo "Deploying to ${{ matrix.environment.name }} environment"
           python -u deploy.py ${{ matrix.environment.name }}
