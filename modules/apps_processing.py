@@ -150,7 +150,7 @@ class AppFilesProcessor:
         else:
             # If the file exists, merge the configurations using ksconf command
             print(f"Merging {filename} with existing file in {dest_path}")
-            command = ["ksconf", "promote", filename, dest_file]
+            command = ["ksconf", "promote", source_path, dest_file]
             try:
                 # Run the command and capture the output
                 result = subprocess.run(
