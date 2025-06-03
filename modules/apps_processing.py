@@ -6,6 +6,7 @@ import configparser
 import tarfile
 import json
 import ksconf
+import subprocess
 from io import StringIO
 from schema import (
     Schema,
