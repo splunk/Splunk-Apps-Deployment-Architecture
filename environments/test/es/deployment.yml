@@ -1,5 +1,5 @@
 target:
-  url: https://staging.admin.splunk.com/scv-shw-a7f6020a334e01
+  url: https://staging.admin.splunk.com/scv-shw-4fba63dd7d6f16
   experience: victoria
 apps:
   Splunk_TA_app1:

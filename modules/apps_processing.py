@@ -5,6 +5,7 @@ import shutil
 import configparser
 import tarfile
 import json
+import ksconf
 from io import StringIO
 from schema import (
     Schema,
@@ -134,36 +135,8 @@ class AppFilesProcessor:
     def __init__(self, deployment_parser: DeploymentParser):
         self.deployment_config = deployment_parser
 
-    def _preprocess_empty_headers(self, file_path: str) -> list:
-        """
-        Preprocess the file to handle empty section headers by replacing `[]` with a valid section name.
-        """
-        valid_lines = []
-        with open(file_path, "r") as file:
-            for line in file:
-                # Replace empty section headers with a placeholder
-                if line.strip() == "[]":
-                    valid_lines.append("[DEFAULT]\n")  # Or any placeholder section name
-                else:
-                    valid_lines.append(line)
-        return valid_lines
-
-    def _replace_default_with_empty_header(self, file_path: str) -> None:
-        """
-        Replace '[DEFAULT]' header with '[]' in the specified file.
-        """
-        with open(file_path, "r") as file:
-            lines = file.readlines()
-
-        with open(file_path, "w") as file:
-            for line in lines:
-                # Replace '[DEFAULT]' with '[]'
-                if line.strip() == "[DEFAULT]":
-                    file.write("[]\n")
-                else:
-                    file.write(line)
-
     def merge_or_copy_conf(self, source_path: str, dest_path: str) -> None:
+        """Function to copy local configuration files to default or merge them using ksconf"""
         # Get the filename from the source path
         filename = os.path.basename(source_path)
         dest_file = os.path.join(dest_path, filename)
@@ -174,83 +147,27 @@ class AppFilesProcessor:
             shutil.copy(source_path, dest_path)
             print(f"Copied {filename} to {dest_path}")
         else:
-            # If the file exists, merge the configurations
+            # If the file exists, merge the configurations using ksconf command
             print(f"Merging {filename} with existing file in {dest_path}")
+            command = ["ksconf", "promote", filename, dest_file]
+            try:
+                # Run the command and capture the output
+                result = subprocess.run(
+                    command,
+                    capture_output=True,  # Capture stdout and stderr
+                    text=True,            # Decode output as text (Python 3.6+)
+                    check=True            # Raise an exception on non-zero exit code
+                )
+                print("Command succeeded:")
+                print(result.stdout)
+                return result
+            except subprocess.CalledProcessError as e:
+                print("Command failed with an error:")
+                print(e.stderr)
+                raise
 
-            # Read the source file
-            source_config = configparser.ConfigParser()
-            source_config.read(source_path)
 
-            # Read the destination file
-            dest_config = configparser.ConfigParser()
-            dest_config.read(dest_file)
-
-            # Merge source into destination
-            for section in source_config.sections():
-                if not dest_config.has_section(section):
-                    dest_config.add_section(section)
-                for option, value in source_config.items(section):
-                    dest_config.set(section, option, value)
-
-            # Write the merged configuration back to the destination file
-            with open(dest_file, "w") as file:
-                dest_config.write(file)
             print(f"Merged configuration saved to {dest_file}")
-
-    def merge_or_copy_meta(self, local_meta_file: str, default_dir: str) -> None:
-        """Merge local.meta with default.meta"""
-        filename = os.path.basename(local_meta_file)
-        dest_file = os.path.join(default_dir, "default.meta")
-
-        # Check if the file exists in the destination directory
-        if not os.path.exists(dest_file):
-            # If the file doesn't exist, copy it
-            shutil.copy(local_meta_file, dest_file)
-            print(f"Copied {filename} to {dest_file}")
-        else:
-            # If the file exists, merge the configurations
-            print(f"Merging {filename} with existing file in {dest_file}")
-
-            # Preprocess the default file
-            default_preprocessed_lines = self._preprocess_empty_headers(dest_file)
-            default_preprocessed_content = StringIO("".join(default_preprocessed_lines))
-
-            # Read the default.meta file
-            default_meta = configparser.ConfigParser()
-            default_meta.read_file(default_preprocessed_content)
-
-            # Preprocess the local file
-            local_preprocessed_lines = self._preprocess_empty_headers(local_meta_file)
-            local_preprocessed_content = StringIO("".join(local_preprocessed_lines))
-
-            # Read the local.meta file
-            local_meta = configparser.ConfigParser()
-            local_meta.read_file(local_preprocessed_content)
-
-            # Merge local.meta into default.meta
-            for section in local_meta.sections():
-                if not default_meta.has_section(section):
-                    default_meta.add_section(section)
-                for option, value in local_meta.items(section):
-                    if default_meta.has_option(section, option):
-                        # Merge logic: Option exists in both, decide whether to overwrite
-                        default_value = default_meta.get(section, option)
-                        if value != default_value:
-                            print(
-                                f"Conflict detected: {section} {option} - {default_value} -> {value}"
-                            )
-                            # Overwrite the option in default.meta
-                            default_meta.set(section, option, value)
-                    default_meta.set(section, option, value)
-
-            # Write the merged configuration back to the output file
-            with open(dest_file, "w") as file:
-                default_meta.write(file)
-
-            # Replace '[DEFAULT]' with '[]' in the output file
-            self._replace_default_with_empty_header(dest_file)
-
-            print(f"Merged metadata saved to {dest_file}")
 
     def unpack_merge_conf_and_meta_repack(self, app: str, path: str) -> None:
         """Unpack the app, load environment configuration files and repack the app."""
@@ -271,13 +188,6 @@ class AppFilesProcessor:
                 os.makedirs(default_dir, exist_ok=True)
                 source_path = os.path.join(app_dir, file)
                 self.merge_or_copy_conf(source_path, default_dir)
-        # Copy all metadata files in app_dir to temp_dir of unpacked app
-        for file in os.listdir(app_dir):
-            if file.endswith(".meta"):
-                default_dir = base_default_dir + "/metadata"
-                os.makedirs(default_dir, exist_ok=True)
-                source_path = os.path.join(app_dir, file)
-                self.merge_or_copy_meta(source_path, default_dir)
         # Repack the app and place it in the root directory
         with tarfile.open(f"{app}.tgz", "w:gz") as tar:
             for root, _, files in os.walk(f"{temp_dir}/{app}"):
