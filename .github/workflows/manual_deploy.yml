@@ -46,7 +46,9 @@ jobs:
           path: artifacts/
       - name: Prepare sanitized artifact name
         id: sanitize
-        run: echo "SANITIZED_NAME=${{ matrix.environment.name }}" | sed 's/[\/:*?"<>|]/-/g' >> $GITHUB_ENV
+        run: |
+          TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
+          echo "SANITIZED_NAME=${{ matrix.environment.name }}-$TIMESTAMP" | sed 's/[\/:*?"<>|]/-/g' >> $GITHUB_ENV
       - name: Debugging apps re-package
         uses: actions/upload-artifact@v4
         with:
