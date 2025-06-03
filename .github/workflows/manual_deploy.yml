@@ -39,16 +39,16 @@ jobs:
         run: |
           echo "Deploying to ${{ matrix.environment.name }} environment"
           python -u deploy.py ${{ matrix.environment.name }}
-      - name: Upload deployment report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-report
-          path: artifacts/
       - name: Prepare sanitized artifact name
         id: sanitize
         run: |
           TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
           echo "SANITIZED_NAME=${{ matrix.environment.name }}-$TIMESTAMP" | sed 's/[\/:*?"<>|]/-/g' >> $GITHUB_ENV
+      - name: Upload deployment report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SANITIZED_NAME }}
+          path: artifacts/
       - name: Debugging apps re-package
         uses: actions/upload-artifact@v4
         with:
