@@ -10,6 +10,11 @@ Assumptions:
 ```
 .
 ├── README.md
+├── .github
+│   └── workflows
+│        ├── deploy.yml
+│        ├── manual_deploy.yml
+│        └── package.yml
 ├── apps
 │   └── app1
 │       ├── app.manifest
@@ -37,6 +42,7 @@ Assumptions:
             └── deployment.yml
 
 ```
+* `.github/` Contains github workflows which are the logic for packaging, uploading and deploying automation
 * `apps/` Contains development for private apps
 * `environments/` Contains
   * deployment instructions per each environment (`deployment.yml`)
