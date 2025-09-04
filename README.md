@@ -23,7 +23,7 @@ This project is part of [DEV1362](https://conf.splunk.com/sessions/catalog.html?
 > Splunk Tokens can be created either using UI or REST API: [documentation](https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/9.4/authenticate-into-the-splunk-platform-with-tokens/create-authentication-tokens)
 6. Make changes to apps and/or environment configration, merge changes and enjoy the running automation!
 
-## Repository Architecture
+## Repository Architecture and Automation
 Check: [SYSTEM_DESIGN.md](https://github.com/splunk/Splunk-Apps-Deployment-Architecture/blob/main/SYSTEM_DESIGN.md)
 
 ## Technical Notes
