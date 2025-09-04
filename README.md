@@ -1,5 +1,5 @@
 # Splunk Apps Deployment Architecture
-This is an idea developed within the context of [this FDSE engagement](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
+This is an idea developed within the context of [this engagement](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
 
 This project is part of [DEV1362](https://conf.splunk.com/sessions/catalog.html?search=DEV1362#) Technical Session at <img src="https://conf.splunk.com/content/dam/splunk-conf/2025/conf25logo.svg" width=50 alt=".conf25"> 
 
