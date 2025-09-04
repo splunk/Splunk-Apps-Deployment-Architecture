@@ -46,8 +46,6 @@
 
 This repository follows the same structure. Please navigate it to verify its content.
 
----
-
 ### `deployment.yml`
 As mentioned, these deployment files specify the apps and configurations needed on each specific environment. Example:
 ```yml
@@ -70,9 +68,8 @@ splunkbase-apps:
   Cb Protection App for Splunk:
     version: 1.0.0
 ```
----
 
-### CI/CD Automation
+## CI/CD Automation
 Two main pipelines:
 * `package` Triggered on merged PR to `main` when there are changes to `apps/*`:
   * Will package apps with changes and upload them into an AWS S3 bucket
@@ -81,4 +78,4 @@ Two main pipelines:
   * Will read the deployment configuration and run the `deploy.py` script to gather the app(s), eventually re-package with proper configuration and install in the target URL
   * Will create `env_deployment_report.json` with information about cloud validation and deployment status. Example report: [example_deployment_report.json](https://github.com/splunk/Splunk-Apps-Deployment-Architecture/blob/main/example_deployment_report.json)
 
->There is additional `manual_deploy` pipeline with the same functionality as `deploy` but it can instead by triggered manually without having to make any changes to `environments/*`
+> The `manual_deploy` pipeline has the same functionality as the `deploy` one but it can be manually triggered
