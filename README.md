@@ -1,88 +1,29 @@
 # Splunk Apps Deployment Architecture
-This is just an idea developed within the context of [JIRA ticket](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
+This is an idea developed within the context of [this FDSE engagement](https://splunk.atlassian.net/browse/FDSE-2571). To be extended and used at own risk.
 
-Assumptions:
+This project is part of [DEV1362](https://conf.splunk.com/sessions/catalog.html?search=DEV1362#) Technical Session at <img src="https://conf.splunk.com/content/dam/splunk-conf/2025/conf25logo.svg" width=50 alt=".conf25"> 
+
+### Assumptions:
 * All apps are stored into a single GitHub repository
 * Deployment performed by custom scripts
 * Automation provided by GitHub Actions
 
-## Repo Architecture
-```
-.
-├── README.md
-├── .github
-│   └── workflows
-│        ├── deploy.yml
-│        ├── manual_deploy.yml
-│        └── package.yml
-├── apps
-│   └── app1
-│       ├── app.manifest
-│       └── default
-│           ├── collections.conf
-│           └── logging.conf
-├── deploy.py
-├── modules
-│   ├── apps_processing.py
-│   ├── report_generator.py
-│   └── splunk_cloud.py
-└── environments
-    ├── prod
-    │   ├── es
-    │   │   └── deployment.yml
-    │   └── stg
-    │       └── deployment.yml
-    └── test
-        ├── es
-        │   ├── app1
-        │   │   └── logging.conf
-        |   |   └── local.meta
-        │   └── deployment.yml
-        └── stg
-            └── deployment.yml
+## Getting Started
+1. Fork and clone this repository
+2. Add custom apps files in `apps/` directory
+3. Add environment configuration files in `environments/`
+4. Add environment names into `deploy.yml` matrix
+5. In Github, add secrets to repository, in particular:
+- `AWS_ACCESS_KEY_ID`,
+- `AWS_SECRET_ACCESS_KEY`,
+- `AWS_REGION` (of S3 Bucket),
+- `SPLUNK_USERNAME` (for `splunk.com` account)
+- `SPLUNK_PASSWORD` (for `splunk.com` account)
+- `SPLUNK_TOKEN_{INSTANCE_ID}` (e.g. `SPLUNK_TOKEN_TEST_ES`, one token for each instance)
+6. Make changes to apps and/or environment configration, merge changes and enjoy the running automation!
 
-```
-* `.github/` Contains github workflows which are the logic for packaging, uploading and deploying automation
-* `apps/` Contains development for private apps
-* `environments/` Contains
-  * deployment instructions per each environment (`deployment.yml`)
-  * specific apps configurations (e.g. `uat/es/app1`)
-* `deploy.py` Used by the automation to perform the deployment
-* `modules/` Contains methods used in deployment automation
-
-This repository follows the same structure. Please navigate it to verify its content.
-
-### `deployment.yml`
-As mentioned, these deployment files specify the apps and configurations needed on each specific environment. Example:
-```yml
-target:
-  url: https://admin.splunk.com/{stack}
-  experience: <victoria|classic>
-apps:
-  # Private apps
-  # - Leave empty if target does not need private apps
-  app1:
-    s3-bucket: bucket-1
-    source: apps/app1.tgz
-    # If there are specific conf files to be added to this
-    # app before being installed, config key will tell
-    config:
-      - ./app1/*.conf
-splunkbase-apps:
-  # Splunkbase apps
-  # - Leave empty if target does not need private apps
-  Cb Protection App for Splunk:
-    version: 1.0.0
-```
-
-## CI/CD Automation
-Two pipelines:
-* `package` Triggered on merged PR to `main` when there are changes to `apps/*`
-  * Will package apps with changes and upload them into an AWS S3 bucket
-    > Apps versions bumps are expected to be done at PR opening
-* `deploy` Triggered on merged PR to `main` when there are changes to `environments/*`
-  * Will read the deployment configuration and run the `deploy.py` script to gather the app(s), eventually re-package with proper configuration and install in the target URL
-  * Will create `env_deployment_report.json` with information about cloud validation and deployment status
+## Repository Architecture
+Check: [SYSTEM_DESIGN.md](https://github.com/splunk/Splunk-Apps-Deployment-Architecture/blob/main/SYSTEM_DESIGN.md)
 
 ## Technical Notes
 * Pipelines triggers could differ from the suggested ones depending on the branches used
