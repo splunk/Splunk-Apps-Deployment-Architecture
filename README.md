@@ -20,6 +20,7 @@ This project is part of [DEV1362](https://conf.splunk.com/sessions/catalog.html?
 - `SPLUNK_USERNAME` (for `splunk.com` account)
 - `SPLUNK_PASSWORD` (for `splunk.com` account)
 - `SPLUNK_TOKEN_{INSTANCE_ID}` (e.g. `SPLUNK_TOKEN_TEST_ES`, one token for each instance)
+> Splunk Tokens can be created either using UI or REST API: [documentation](https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/9.4/authenticate-into-the-splunk-platform-with-tokens/create-authentication-tokens)
 6. Make changes to apps and/or environment configration, merge changes and enjoy the running automation!
 
 ## Repository Architecture
