@@ -1,10 +1,6 @@
 # System Design
 
-This file shows example architecture of the deployment repository and gives explanation of each YML, Python script and Github workflow funtionality within the solution.
-
----
-
-## Repository Architecutre
+## Repository Architecture
 ```
 .
 ├── README.md
